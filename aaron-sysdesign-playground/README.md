@@ -16,3 +16,5 @@ Run a script using that environment:
 ```
 uv run <file>.py
 ```
+
+If VS Code is showing errors, be sure to set your python interpreter (via cmd shift P) to aaron-sysdesign-playground/.venv/bin/python
