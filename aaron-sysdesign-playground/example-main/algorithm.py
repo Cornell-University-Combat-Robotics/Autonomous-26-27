@@ -23,10 +23,10 @@ class Algorithm:
         Mock behavior: just report the bot count. Real version would return a
         MoveCommand dataclass for the orchestrator to hand to Transmission.
         """
-        logger.trace(f"algorithm: raw result={result}")
+        logger.trace("algorithm: raw result={}", result)
         self._decisions_made += 1
-        logger.debug(f"algorithm: decisions_made={self._decisions_made}")
-        logger.info(f"[frame {result.frame_id}] I see {len(result.bots)} robots")
+        logger.debug("algorithm: decisions_made={}", self._decisions_made)
+        logger.info("[frame {}] I see {} robots", result.frame_id, len(result.bots))
 
     # ---- read-only state accessors -------------------------------------
 

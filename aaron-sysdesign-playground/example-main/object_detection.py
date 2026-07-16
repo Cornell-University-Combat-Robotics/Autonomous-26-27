@@ -24,7 +24,7 @@ class ObjectDetector:
 
     def detect(self, frame: Frame) -> DetectionResult:
         """Run detection on one frame. Reads the Frame, never mutates it."""
-        logger.trace(f"object_detection: running inference on frame {frame.frame_id}")
+        logger.trace("object_detection: running inference on frame {}", frame.frame_id)
         # Mock inference: always "find" two robots. Real version runs the model
         # on frame.pixels here.
         bots = [
@@ -35,7 +35,7 @@ class ObjectDetector:
         # frame_id carried through so downstream stages can match results to frames.
         result = DetectionResult(bots=bots, frame_id=frame.frame_id)
         self._history.append(result)
-        logger.debug(f"object_detection: found {len(bots)} bots in frame {frame.frame_id}")
+        logger.debug("object_detection: found {} bots in frame {}", len(bots), frame.frame_id)
         return result
 
     # ---- read-only state accessors -------------------------------------
