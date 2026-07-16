@@ -19,10 +19,12 @@ uv run logging-playground/main.py --trace service_a service_b     # both at TRAC
 
 `--debug` and `--trace` can also be combined, each targeting different modules, e.g. `--debug service_b --trace service_a`.
 
-This works via loguru's dict `filter`: the sink's `filter` maps module name -> minimum level, with `""` as the default for any module not explicitly listed. See [logging_config.py](logging_config.py)'s `configure_logging`.
+This works via loguru's dict `filter`: the sink's `filter` maps module name -> minimum level, with `""` as the default for any module not explicitly listed. See [logging_config.py](../logging_config.py)'s `configure_logging`.
+
+`logging_config.py` now lives at the repo root (`aaron-sysdesign-playground/logging_config.py`) so any folder can reuse it — each entry-point script adds the repo root to `sys.path` before importing it (see the top of `main.py`).
 
 ## Log files and formatting
 
-`configure_logging` also writes every log (always at `TRACE`, regardless of the CLI flags) to `logs/app.log`, rotating to a new file past 10 MB, compressing rotated files, and deleting anything older than 7 days. To change any of that, edit the `logger.add(LOG_DIR / "app.log", ...)` call in [logging_config.py](logging_config.py) — e.g. adjust `rotation`/`retention`, add a `filter` to match the console sink instead of capturing everything, or point `LOG_DIR` elsewhere.
+`configure_logging(args, log_dir)` also writes every log (always at `TRACE`, regardless of the CLI flags) to `<log_dir>/app.log`, rotating to a new file past 10 MB, compressing rotated files, and deleting anything older than 7 days. Each entry-point script passes its own directory (`log_dir=Path(__file__).parent / "logs"`), so `logging-playground/main.py` writes to `logging-playground/logs/`, `example-main/main.py` writes to `example-main/logs/`, and so on — logs always land next to the script that produced them, not in `logging_config.py`'s own location. To change rotation/retention/compression, edit the `logger.add(log_dir / "app.log", ...)` call in [logging_config.py](../logging_config.py).
 
 Console output uses `CONSOLE_FORMAT` (no date, just time) instead of loguru's default. Each sink can have its own `format`, so the file sink keeps loguru's default (full date + function name) since it's meant for later review. To change what a sink prints, edit its `format` string — see loguru's [record fields](https://loguru.readthedocs.io/en/stable/api/logger.html#record) for what's available (`{time}`, `{level}`, `{name}`, `{function}`, `{line}`, `{message}`, etc.).

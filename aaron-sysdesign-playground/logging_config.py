@@ -4,9 +4,8 @@ from pathlib import Path
 
 from loguru import logger
 
-LOG_DIR = Path(__file__).parent / "logs"
 CONSOLE_FORMAT = (
-    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | "
+    "<green>{time:MM/DD/YY HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | "
     "<cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 )
 
@@ -30,7 +29,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def configure_logging(args):
+def configure_logging(args, log_dir: Path):
     filter_map = {"": "INFO"}
     sink_level = "INFO"
 
@@ -54,7 +53,7 @@ def configure_logging(args):
     logger.add(sys.stderr, level=sink_level,
                filter=filter_map, format=CONSOLE_FORMAT)
     logger.add(
-        LOG_DIR / "app.log",
+        log_dir / "app.log",
         level="TRACE",
         rotation="10 MB",
         retention="7 days",

@@ -17,4 +17,9 @@ Run a script using that environment:
 uv run <file>.py
 ```
 
+Add a package to the environment:
+```
+uv add <package>
+```
+
 If VS Code is showing errors, be sure to set your python interpreter (via cmd shift P) to aaron-sysdesign-playground/.venv/bin/python
