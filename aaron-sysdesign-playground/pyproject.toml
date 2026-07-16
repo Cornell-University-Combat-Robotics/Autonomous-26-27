@@ -1,0 +1,8 @@
+[project]
+name = "aaron-sysdesign-playground"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13.12"
+dependencies = [
+    "loguru>=0.7.3",
+]
