@@ -25,6 +25,13 @@ This works via loguru's dict `filter`: the sink's `filter` maps module name -> m
 
 ## Log files and formatting
 
-`configure_logging(args, log_dir)` also writes every log (always at `TRACE`, regardless of the CLI flags) to `<log_dir>/app.log`, rotating to a new file past 10 MB, compressing rotated files, and deleting anything older than 7 days. Each entry-point script passes its own directory (`log_dir=Path(__file__).parent / "logs"`), so `logging-playground/main.py` writes to `logging-playground/logs/`, `example-main/main.py` writes to `example-main/logs/`, and so on — logs always land next to the script that produced them, not in `logging_config.py`'s own location. To change rotation/retention/compression, edit the `logger.add(log_dir / "app.log", ...)` call in [logging_config.py](../logging_config.py).
+`configure_logging(args, log_dir)` writes to `<log_dir>` (each entry-point script passes its own directory, e.g. `log_dir=Path(__file__).parent / "logs"`, so `logging-playground/main.py` writes to `logging-playground/logs/`, `example-main/main.py` writes to `example-main/logs/`). Every file write is always at `TRACE` regardless of the CLI flags, with 10 MB rotation, zip compression, and 7-day retention.
+
+Inside `<log_dir>` you get one log file per `.py` file in the entry script's directory, plus a combined one:
+
+- `main.log` — everything, from every file
+- `<module>.log` — just that module's logs (e.g. `camera.log`, `algorithm.log`)
+
+This list is generated automatically each run by scanning the directory for `*.py` files — drop in a new file (e.g. `corner_detection.py`) and its `corner_detection.log` appears next run with no changes needed to `logging_config.py`. The entry script itself (`main.py`) is skipped from the per-module list since its own logs are attributed to `__main__`, not its filename, and `main.log` already has everything anyway.
 
 Console output uses `CONSOLE_FORMAT` (no date, just time) instead of loguru's default. Each sink can have its own `format`, so the file sink keeps loguru's default (full date + function name) since it's meant for later review. To change what a sink prints, edit its `format` string — see loguru's [record fields](https://loguru.readthedocs.io/en/stable/api/logger.html#record) for what's available (`{time}`, `{level}`, `{name}`, `{function}`, `{line}`, `{message}`, etc.).
