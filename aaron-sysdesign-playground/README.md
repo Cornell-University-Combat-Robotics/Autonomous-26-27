@@ -17,6 +17,17 @@ Run a script using that environment:
 uv run <file>.py
 ```
 
+Run a script with detailed timing info:
+```
+uv run viztracer <file>.py
+```
+
+View that detailed timing info:
+```
+uv run vizviewer result.json
+```
+
+
 Add a package to the environment:
 ```
 uv add <package>
