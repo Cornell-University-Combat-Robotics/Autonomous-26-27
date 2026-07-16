@@ -20,3 +20,9 @@ uv run logging-playground/main.py --trace service_a service_b     # both at TRAC
 `--debug` and `--trace` can also be combined, each targeting different modules, e.g. `--debug service_b --trace service_a`.
 
 This works via loguru's dict `filter`: the sink's `filter` maps module name -> minimum level, with `""` as the default for any module not explicitly listed. See [logging_config.py](logging_config.py)'s `configure_logging`.
+
+## Log files and formatting
+
+`configure_logging` also writes every log (always at `TRACE`, regardless of the CLI flags) to `logs/app.log`, rotating to a new file past 10 MB, compressing rotated files, and deleting anything older than 7 days. To change any of that, edit the `logger.add(LOG_DIR / "app.log", ...)` call in [logging_config.py](logging_config.py) — e.g. adjust `rotation`/`retention`, add a `filter` to match the console sink instead of capturing everything, or point `LOG_DIR` elsewhere.
+
+Console output uses `CONSOLE_FORMAT` (no date, just time) instead of loguru's default. Each sink can have its own `format`, so the file sink keeps loguru's default (full date + function name) since it's meant for later review. To change what a sink prints, edit its `format` string — see loguru's [record fields](https://loguru.readthedocs.io/en/stable/api/logger.html#record) for what's available (`{time}`, `{level}`, `{name}`, `{function}`, `{line}`, `{message}`, etc.).

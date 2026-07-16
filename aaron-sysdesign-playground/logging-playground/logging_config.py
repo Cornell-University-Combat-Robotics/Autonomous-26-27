@@ -1,7 +1,14 @@
 import argparse
 import sys
+from pathlib import Path
 
 from loguru import logger
+
+LOG_DIR = Path(__file__).parent / "logs"
+CONSOLE_FORMAT = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | "
+    "<cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
+)
 
 
 def parse_args():
@@ -44,4 +51,12 @@ def configure_logging(args):
             filter_map[""] = "TRACE"
 
     logger.remove()
-    logger.add(sys.stderr, level=sink_level, filter=filter_map)
+    logger.add(sys.stderr, level=sink_level,
+               filter=filter_map, format=CONSOLE_FORMAT)
+    logger.add(
+        LOG_DIR / "app.log",
+        level="TRACE",
+        rotation="10 MB",
+        retention="7 days",
+        compression="zip",
+    )
