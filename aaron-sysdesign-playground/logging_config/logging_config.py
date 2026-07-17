@@ -178,15 +178,24 @@ def configure_logging(args):
 
     service_configs = _discover_services()
 
-    console_level, console_filter = _resolve_sink(console_cli, service_configs, "console")
-    logfile_level, logfile_filter = _resolve_sink(logfile_cli, service_configs, "logfile")
+    console_level, console_filter = _resolve_sink(
+        console_cli, service_configs, "console"
+    )
+    logfile_level, logfile_filter = _resolve_sink(
+        logfile_cli, service_configs, "logfile"
+    )
 
     console_format = SIMPLE_FORMAT if args.simple_logs else CONSOLE_FORMAT
     logfile_format = SIMPLE_FORMAT if args.simple_logs else LOGFILE_FORMAT
 
     if console_level is not None:
-        logger.add(sys.stderr, level=console_level, filter=console_filter,
-                   format=console_format, enqueue=ENQUEUE)
+        logger.add(
+            sys.stderr,
+            level=console_level,
+            filter=console_filter,
+            format=console_format,
+            enqueue=ENQUEUE,
+        )
 
     if logfile_level is None:
         return
@@ -212,8 +221,7 @@ def configure_logging(args):
             LOG_DIR / f"{service}.log",
             level=service_level,
             filter=lambda record, service=service: (
-                record["name"] == service
-                or record["name"].startswith(service + ".")
+                record["name"] == service or record["name"].startswith(service + ".")
             ),
             rotation="10 MB",
             retention="7 days",

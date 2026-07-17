@@ -111,6 +111,20 @@ uv run viztracer main.py
 uv run vizviewer result.json
 ```
 
+### Formatting
+
+[black](https://black.readthedocs.io/) is a dev dependency for consistent code style. Preview changes before writing anything:
+
+```
+uv run black --check --diff .
+```
+
+Apply them:
+
+```
+uv run black .
+```
+
 ## Adding a new service
 
 1. `mkdir foo`

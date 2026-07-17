@@ -35,7 +35,9 @@ class ObjectDetector:
         # frame_id carried through so downstream stages can match results to frames.
         result = DetectionResult(bots=bots, frame_id=frame.frame_id)
         self._history.append(result)
-        logger.debug("object_detection: found {} bots in frame {}", len(bots), frame.frame_id)
+        logger.debug(
+            "object_detection: found {} bots in frame {}", len(bots), frame.frame_id
+        )
         return result
 
     # ---- read-only state accessors -------------------------------------

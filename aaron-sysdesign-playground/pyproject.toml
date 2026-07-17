@@ -10,5 +10,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "black>=26.5.1",
     "viztracer>=1.1.1",
 ]
