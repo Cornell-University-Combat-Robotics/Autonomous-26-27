@@ -10,6 +10,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "black>=26.5.1",
+    "ruff>=0.15.22",
     "viztracer>=1.1.1",
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Each service's __init__.py intentionally re-exports its public names for
+# `from <service> import X` imports elsewhere; ruff's default unused-import
+# check doesn't know that's the point of the file.
+"__init__.py" = ["F401"]

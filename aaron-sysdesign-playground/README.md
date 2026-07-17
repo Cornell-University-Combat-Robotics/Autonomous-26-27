@@ -34,6 +34,11 @@ Add a package to the environment:
 uv add <package>
 ```
 
+Remove a package from the environment:
+```
+uv remove <package>
+```
+
 If VS Code is showing errors, be sure to set your python interpreter (via cmd shift P) to aaron-sysdesign-playground/.venv/bin/python
 
 ## Repo structure
@@ -111,19 +116,28 @@ uv run viztracer main.py
 uv run vizviewer result.json
 ```
 
-### Formatting
+### Linting and formatting
 
-[black](https://black.readthedocs.io/) is a dev dependency for consistent code style. Preview changes before writing anything:
-
-```
-uv run black --check --diff .
-```
-
-Apply them:
+[ruff](https://docs.astral.sh/ruff/) is a dev dependency for both linting and formatting — same team as `uv`, and much faster than running separate tools. Check for lint issues:
 
 ```
-uv run black .
+uv run ruff check .
 ```
+
+Preview formatting changes before writing anything:
+
+```
+uv run ruff format --check --diff .
+```
+
+Apply both:
+
+```
+uv run ruff check --fix .
+uv run ruff format .
+```
+
+Each service's `__init__.py` intentionally re-exports its public names (e.g. `from .algorithm import Algorithm`), which ruff's unused-import check would otherwise flag — that's silenced via `[tool.ruff.lint.per-file-ignores]` in `pyproject.toml`.
 
 ## Adding a new service
 
