@@ -6,23 +6,18 @@ That keeps every service testable alone: construct its input dataclass,
 call its one hot-path method, check the output.
 """
 
-import sys
-from pathlib import Path
-
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
 from loguru import logger
-from logging_config import configure_logging, parse_args
 
 from algorithm import Algorithm
 from camera import Camera
+from logging_config import configure_logging, parse_args
 from object_detection import ObjectDetector
 
 NUM_FRAMES = 3  # mock "match length"; real loop runs until stopped
 
 
 def main():
-    configure_logging(parse_args(), log_dir=Path(__file__).parent / "logs")
+    configure_logging(parse_args())
 
     # Construction phase: build every service once, up front. In the real
     # system this is also where a Settings object picks implementations

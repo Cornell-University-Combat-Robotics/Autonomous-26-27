@@ -5,6 +5,13 @@ from pathlib import Path
 
 from loguru import logger
 
+# logging_config/ sits at the repo root, so the root is one level up.
+REPO_ROOT = Path(__file__).resolve().parent.parent
+
+# Log files always land at the repo root, regardless of which entry point
+# is running or what the current working directory is.
+LOG_DIR = REPO_ROOT / "logs"
+
 CONSOLE_FORMAT = (
     "<green>{time:MM/DD/YY HH:mm:ss.SSS}</green> | <level>{level: <8}</level> | "
     "<cyan>{name}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
@@ -31,16 +38,16 @@ def parse_args():
     parser.add_argument(
         "--debug",
         nargs="*",
-        metavar="MODULE",
-        help="Log at DEBUG. With no MODULE given, applies to everything. "
-        "With MODULE names (e.g. --debug service_a), applies only to those modules.",
+        metavar="SERVICE",
+        help="Log at DEBUG. With no SERVICE given, applies to everything. "
+        "With SERVICE names (e.g. --debug algorithm), applies only to those services.",
     )
     parser.add_argument(
         "--trace",
         nargs="*",
-        metavar="MODULE",
-        help="Log at TRACE. With no MODULE given, applies to everything. "
-        "With MODULE names (e.g. --trace service_a), applies only to those modules.",
+        metavar="SERVICE",
+        help="Log at TRACE. With no SERVICE given, applies to everything. "
+        "With SERVICE names (e.g. --trace algorithm camera), applies only to those services.",
     )
     parser.add_argument(
         "--clean-logs",
@@ -65,31 +72,44 @@ def parse_args():
     return parser.parse_args()
 
 
-def configure_logging(args, log_dir: Path):
+def _service_packages():
+    """Service folders at the repo root: any directory holding an __init__.py."""
+    return sorted(
+        d.name
+        for d in REPO_ROOT.iterdir()
+        if d.is_dir() and (d / "__init__.py").exists()
+    )
+
+
+def configure_logging(args):
     logger.remove()
 
     if args.no_logs:
         return
 
-    if args.clean_logs and log_dir.exists():
-        shutil.rmtree(log_dir)
+    if args.clean_logs and LOG_DIR.exists():
+        shutil.rmtree(LOG_DIR)
 
+    # Maps service name -> minimum level. Loguru resolves a record's module
+    # (e.g. "algorithm.algorithm") to its closest parent in this dict, so a
+    # bare service name governs every module inside that service's folder;
+    # "" is the fallback for everything else.
     filter_map = {"": "INFO"}
     sink_level = "INFO"
 
     if args.debug is not None:
         sink_level = "DEBUG"
         if args.debug:
-            for module in args.debug:
-                filter_map[module] = "DEBUG"
+            for service in args.debug:
+                filter_map[service] = "DEBUG"
         else:
             filter_map[""] = "DEBUG"
 
     if args.trace is not None:
         sink_level = "TRACE"
         if args.trace:
-            for module in args.trace:
-                filter_map[module] = "TRACE"
+            for service in args.trace:
+                filter_map[service] = "TRACE"
         else:
             filter_map[""] = "TRACE"
 
@@ -102,11 +122,11 @@ def configure_logging(args, log_dir: Path):
     if args.console_only:
         return
 
-    # main.log: everything from every file in the entry script's directory,
-    # filtered exactly like the console sink (same level, same per-module
-    # overrides), so log files never contain more than what's on screen.
+    # main.log: everything, filtered exactly like the console sink (same
+    # level, same per-service overrides), so log files never contain more
+    # than what's on screen.
     logger.add(
-        log_dir / "main.log",
+        LOG_DIR / "main.log",
         level=sink_level,
         filter=filter_map,
         rotation="10 MB",
@@ -116,22 +136,19 @@ def configure_logging(args, log_dir: Path):
         enqueue=ENQUEUE,
     )
 
-    # <module>.log: one file per sibling .py module, containing only that
-    # module's logs, at whatever level the console is showing for that
-    # module. New files are picked up automatically since this scans the
-    # directory rather than hardcoding module names. The entry script itself
-    # is skipped since its logs are recorded under "__main__" (not its
-    # filename) and main.log already captures everything anyway.
-    entry_module = Path(sys.argv[0]).stem
-    for py_file in sorted(log_dir.parent.glob("*.py")):
-        module_name = py_file.stem
-        if module_name == entry_module:
-            continue
-        module_level = filter_map.get(module_name, filter_map[""])
+    # <service>.log: one file per service folder, containing only that
+    # service's logs at whatever level the console shows for it. Services
+    # are discovered by scanning the repo root, so a new service folder
+    # gets its own log file automatically — no changes needed here.
+    for service in _service_packages():
+        service_level = filter_map.get(service, filter_map[""])
         logger.add(
-            log_dir / f"{module_name}.log",
-            level=module_level,
-            filter=lambda record, module_name=module_name: record["name"] == module_name,
+            LOG_DIR / f"{service}.log",
+            level=service_level,
+            filter=lambda record, service=service: (
+                record["name"] == service
+                or record["name"].startswith(service + ".")
+            ),
             rotation="10 MB",
             retention="7 days",
             compression="zip",
