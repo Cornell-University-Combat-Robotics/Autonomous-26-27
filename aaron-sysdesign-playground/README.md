@@ -47,14 +47,17 @@ aaron-sysdesign-playground/
 ├── algorithm/
 │   ├── algorithm.py         # Algorithm: turns detections into decisions
 │   ├── __init__.py          # re-exports Algorithm
+│   ├── log_config.toml      # this service's default console/logfile levels
 │   └── README.md
 ├── camera/
 │   ├── camera.py            # Camera: mock frame capture, produces Frame
 │   ├── __init__.py          # re-exports Camera
+│   ├── log_config.toml
 │   └── README.md
 ├── object_detection/
 │   ├── object_detection.py  # ObjectDetector: turns a Frame into a DetectionResult
 │   ├── __init__.py          # re-exports ObjectDetector
+│   ├── log_config.toml
 │   └── README.md
 ├── datatypes/
 │   ├── datatypes.py         # shared dataclasses passed between stages: Frame, Detection, DetectionResult
@@ -97,7 +100,7 @@ Net effect: adding a service requires zero registration anywhere. Make the folde
 
 ### Logging
 
-Logging is handled by `logging_config/`, built on [loguru](https://loguru.readthedocs.io/). Console output defaults to `INFO`; `--debug` / `--trace` flags can raise the level globally or per service, log files are written to `logs/` at the repo root, and one log file per service is generated automatically. See [logging_config/README.md](logging_config/README.md) for the full design and CLI reference.
+Logging is handled by `logging_config/`, built on [loguru](https://loguru.readthedocs.io/). Console and log-file verbosity are controlled independently (`--console`/`--logfile`, or the `--debug`/`--trace` shortcuts for both at once). Per-service default levels live in each service's own `log_config.toml` rather than being passed on the command line — CLI flags, when given, override those files. Log files are written to `logs/` at the repo root, with one file per service that opts in via `log_config.toml`. See [logging_config/README.md](logging_config/README.md) for the full design and CLI reference.
 
 ### Profiling
 
@@ -114,8 +117,9 @@ uv run vizviewer result.json
 2. `foo/foo.py` — write the service's logic (a class with one hot-path method plus read-only state accessors, following the existing services as a template).
 3. `foo/__init__.py` — re-export the public class, e.g. `from .foo import Foo`.
 4. `foo/README.md` — document what it does, its hot-path method, and its queryable state.
-5. In `main.py`, `from foo import Foo`, construct it alongside the other services, and wire its input/output into the pipeline.
-6. Nothing else to do. `logging_config` discovers services by scanning the repo root for folders containing `__init__.py`, so `logs/foo.log` appears automatically on the next run.
+5. `foo/log_config.toml` — only if `foo` actually calls `logger.*`: `console = "INFO"` / `logfile = "INFO"` (or whatever default level makes sense). Skip this file entirely for folders that don't log (like `datatypes/`).
+6. In `main.py`, `from foo import Foo`, construct it alongside the other services, and wire its input/output into the pipeline.
+7. Nothing else to do. `logging_config` discovers services by scanning the repo root for folders containing `log_config.toml`, so `logs/foo.log` appears automatically on the next run.
 
 ## CLI flags
 
@@ -123,20 +127,21 @@ uv run vizviewer result.json
 
 | Flag | Effect |
 | --- | --- |
-| *(none)* | Console at `INFO`, log files written, full formatting. |
-| `--debug [SERVICE ...]` | Raise to `DEBUG`. No names: everywhere. With names: only those services, rest stay `INFO`. |
-| `--trace [SERVICE ...]` | Raise to `TRACE`. No names: everywhere. With names: only those services, rest stay `INFO`. |
-| `--clean-logs` | Wipe `logs/` before this run instead of appending to it. |
+| *(none)* | Console and log files at each service's own `log_config.toml` level (default `INFO`). |
 | `--no-logs` | Disable logging entirely: no console output, no log files. |
-| `--console-only` | Log to the terminal only; skip writing any log files. |
+| `--debug` | Log at `DEBUG` in both console and log files, globally. |
+| `--trace` | Log at `TRACE` in both console and log files, globally. |
+| `--console {NONE,INFO,DEBUG,TRACE}` | Set the console level explicitly. `NONE` disables console output only. |
+| `--logfile {NONE,INFO,DEBUG,TRACE}` | Set the log file level explicitly. `NONE` disables all log files only. |
+| `--clear-logs` | Wipe `logs/` before this run instead of appending to it. Combines with any other flag. |
 | `--simple-logs` | Format every sink as just the raw message (no timestamp/level/name). |
 
-`--debug` and `--trace` are combinable, each targeting different services. Examples:
+`--no-logs`, `--debug`, `--trace`, and `--console`/`--logfile` are mutually exclusive with each other (pick one way to control verbosity); `--console` and `--logfile` may be combined with each other. Examples:
 
 ```
 uv run main.py --trace
-uv run main.py --debug camera object_detection
-uv run main.py --debug camera --trace algorithm
+uv run main.py --console NONE --logfile TRACE
+uv run main.py --console DEBUG --logfile NONE
 ```
 
-Full detail — how filtering resolves per module, log file locations, rotation, and performance notes — lives in [logging_config/README.md](logging_config/README.md).
+Full detail — the per-service `log_config.toml` mechanism, how filtering resolves per module, log file locations, rotation, and performance notes — lives in [logging_config/README.md](logging_config/README.md).

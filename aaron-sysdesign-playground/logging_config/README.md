@@ -20,31 +20,53 @@ configure_logging(parse_args())
 
 ## CLI flags
 
-Default console level is `INFO`. `parse_args()` recognizes:
+`parse_args()` recognizes:
 
 | Flag | Effect |
 | --- | --- |
-| `--debug [SERVICE ...]` | Raise to `DEBUG`. With no names, applies to everything. With names (e.g. `--debug camera`), raises only those services; everything else stays `INFO`. |
-| `--trace [SERVICE ...]` | Same as `--debug`, but raises to `TRACE`. |
-| `--clean-logs` | Empty `logs/` before this run instead of appending to it. |
-| `--no-logs` | Disable logging entirely: no console sink, no file sinks. Short-circuits before `--clean-logs` runs, so combining the two does not clear existing logs. |
-| `--console-only` | Add the console sink only; skip writing any log files. |
+| `--no-logs` | Disable logging entirely: no console output, no log files. |
+| `--debug` | Log at `DEBUG` in both the console and log files, globally. |
+| `--trace` | Log at `TRACE` in both the console and log files, globally. |
+| `--console {NONE,INFO,DEBUG,TRACE}` | Set the console level explicitly. `NONE` disables console output only. |
+| `--logfile {NONE,INFO,DEBUG,TRACE}` | Set the log file level explicitly. `NONE` disables all log files only. |
+| `--clear-logs` | Empty `logs/` before this run instead of appending to it. Combines with anything. |
 | `--simple-logs` | Format every sink as just `{message}`, skipping timestamp/level/name/line formatting. |
 
-`--debug` and `--trace` are combinable, each targeting different services, e.g. `--debug camera --trace algorithm` raises `camera` to `DEBUG` and `algorithm` to `TRACE` while everything else stays at `INFO`.
+`--no-logs`, `--debug`, `--trace`, and `--console`/`--logfile` are mutually exclusive — pick exactly one way to control verbosity per run. `--console` and `--logfile` are the exception: they can be combined with each other (but not with `--no-logs`/`--debug`/`--trace`), letting console and file verbosity differ, e.g. a quiet terminal with a detailed log file:
 
-This works via loguru's dict `filter`: the sink's `filter` maps a module name to a minimum level, with `""` as the fallback for anything not explicitly listed. Loguru resolves a record's module name (e.g. `algorithm.algorithm`) to the closest matching key in that dict, so a bare service name like `"algorithm"` governs every module inside that service's folder. See `configure_logging` in [logging_config.py](logging_config.py).
+```
+uv run main.py --console NONE --logfile TRACE
+```
+
+Violating this (e.g. `--no-logs --trace`) prints a clear error and exits rather than silently picking one.
+
+`--clear-logs` runs before the `--no-logs` check, so `--no-logs --clear-logs` still empties `logs/` even though the run itself produces nothing new.
+
+## Per-service log levels: `log_config.toml`
+
+Rather than passing per-service levels on the command line, each service folder that wants logging opts in with its own `log_config.toml`:
+
+```toml
+console = "INFO"
+logfile = "INFO"
+```
+
+Both keys are optional and default to `INFO`. A service folder with no `log_config.toml` (e.g. `datatypes/`, which never calls `logger.*`) is invisible to `logging_config` entirely — it gets no dedicated log file, and any log calls it did make would only show up in `main.log` at the global default level.
+
+These per-service levels are what apply when the CLI doesn't specify a level for that sink — **CLI flags always override every service's file-based level.** `--debug`/`--trace`/`--console`/`--logfile`, when given, apply the requested level to every service uniformly, ignoring `log_config.toml` for that sink. Only when neither `--debug`/`--trace` nor `--console`/`--logfile` is passed does each service's own file take effect (with `""`/unconfigured folders falling back to `INFO`).
+
+This is implemented via loguru's dict `filter`: the sink's `filter` maps a module name to a minimum level, with `""` as the fallback for anything not explicitly listed. Loguru resolves a record's module name (e.g. `algorithm.algorithm`) to the closest matching key in that dict, so the bare service name `"algorithm"` governs every module inside that folder. See `_resolve_sink` in [logging_config.py](logging_config.py).
 
 ## Log files
 
 Log files always land at `REPO_ROOT/logs`, where `REPO_ROOT` is derived from `logging_config.py`'s own location (`Path(__file__).resolve().parent.parent`) — not the current working directory, so it doesn't matter where a script is run from.
 
-- `main.log` — everything, filtered with the exact same level and per-service overrides as the console sink, so it always mirrors what's on screen.
-- `<service>.log` — one file per top-level service folder, containing only that service's log records, at whatever level the console shows for it.
+- `main.log` — everything that passes the resolved logfile level/filter.
+- `<service>.log` — one file per service folder that has a `log_config.toml`, containing only that service's log records, at whatever level the logfile sink resolved for it.
 
-The service list is generated each run by scanning the repo root for directories containing an `__init__.py` (`_service_packages()` in [logging_config.py](logging_config.py)). Adding a new service folder gets it a log file automatically — no changes needed here.
+The service list is generated each run by scanning the repo root for directories containing a `log_config.toml` (`_discover_services()` in [logging_config.py](logging_config.py)). Adding a new service folder gets it a log file automatically as soon as it has that file — no changes needed in `logging_config.py`.
 
-Because file sinks reuse the same level/filter as the console, log files never contain more than what the console would have shown. All file sinks use 10 MB rotation, zip compression, and 7-day retention.
+All file sinks use 10 MB rotation, zip compression, and 7-day retention.
 
 ## Performance notes
 
