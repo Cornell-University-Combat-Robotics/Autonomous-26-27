@@ -7,6 +7,11 @@ This repo is a small mock-up of that redesign: a fake robot pipeline (camera to 
 
 This project uses [uv](https://docs.astral.sh/uv/) to manage the Python version and dependencies.
 
+Install uv
+```
+pip install uv
+```
+
 Sync your environment to match `pyproject.toml` / `uv.lock` (installs Python 3.13.12 if needed):
 
 ```
