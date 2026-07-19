@@ -3,3 +3,13 @@ __pycache__/
 *.pyc
 logs/
 result.json
+
+# Testing videos are synced with Box, not git (see scripts/README.md).
+# Ignore by extension (kept in sync with VIDEO_EXTENSIONS in scripts/box_sync.py)
+# rather than the whole videos/ folder, so its huey/other subdirectories stay tracked.
+videos/**/*.mp4
+videos/**/*.mov
+videos/**/*.avi
+videos/**/*.mkv
+videos/**/*.m4v
+videos/**/*.webm

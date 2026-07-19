@@ -46,6 +46,17 @@ uv remove <package>
 
 If VS Code is showing errors, be sure to set your python interpreter (via cmd shift P) to aaron-sysdesign-playground/.venv/bin/python
 
+## Testing videos
+
+Testing videos are stored in the team's Box folder instead of git (some are too large for the repo), organized into subdirectories by category (`huey/`, `other/`). `videos/` is a local copy — pull down what's in Box, or push up anything new you've added locally, optionally scoped to just one category:
+
+```
+uv run scripts/download_videos.py [--dir huey]
+uv run scripts/upload_videos.py   [--dir huey]
+```
+
+See [scripts/README.md](scripts/README.md) for details.
+
 ## Repo structure
 
 ```
@@ -77,11 +88,19 @@ aaron-sysdesign-playground/
 │   ├── logging_config.py    # loguru setup: CLI flags, console + per-service file sinks
 │   ├── __init__.py          # re-exports configure_logging, parse_args
 │   └── README.md            # logging usage and design in detail
-└── logs/                    # generated on run, gitignored
-    ├── main.log             # everything, filtered like the console
-    ├── camera.log           # just camera's logs
-    ├── algorithm.log        # just algorithm's logs
-    └── ...                  # one file per service, auto-discovered
+├── logs/                    # generated on run, gitignored
+│   ├── main.log             # everything, filtered like the console
+│   ├── camera.log           # just camera's logs
+│   ├── algorithm.log        # just algorithm's logs
+│   └── ...                  # one file per service, auto-discovered
+├── scripts/
+│   ├── box_sync.py          # shared helpers for the Box video sync scripts below
+│   ├── download_videos.py   # pull testing videos from the team's Box folder
+│   ├── upload_videos.py     # push new local testing videos to Box
+│   └── README.md
+└── videos/                  # testing videos, synced with Box (see scripts/README.md)
+    ├── huey/                # gitignored video files; folder itself is tracked
+    └── other/
 ```
 
 ## Design decisions
