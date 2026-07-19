@@ -13,3 +13,5 @@ videos/**/*.avi
 videos/**/*.mkv
 videos/**/*.m4v
 videos/**/*.webm
+
+frames/
