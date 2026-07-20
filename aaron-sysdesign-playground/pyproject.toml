@@ -6,6 +6,7 @@ requires-python = ">=3.13.12"
 dependencies = [
     "loguru>=0.7.3",
     "numpy>=2.5.1",
+    "opencv-python>=5.0.0.93",
     "requests>=2.34.2",
     "roboflow>=1.3.10",
 ]

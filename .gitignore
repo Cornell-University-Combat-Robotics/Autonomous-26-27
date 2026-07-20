@@ -219,3 +219,6 @@ __marimo__/
 
 # VS Code
 .vscode/
+
+# DS Store
+.DS_Store
