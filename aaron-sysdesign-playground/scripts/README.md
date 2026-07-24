@@ -32,3 +32,15 @@ uv run scripts/upload_videos.py --dir huey
 ```
 
 Both scripts compare by filename (and size, to warn on same-name-different-content) rather than re-copying everything every time, so they're safe to re-run.
+
+## Warping a whole video
+
+`warp_video.py` downloads one video from a URL, lets you click its 4 floor corners (see [warp/README.md](../warp/README.md)), warps every frame with those corners, and writes the result to `videos/<name>_warped.mp4`.
+
+Set `VIDEO_URL` at the top of the script to the video you want, then run:
+
+```
+uv run scripts/warp_video.py
+```
+
+Unlike `brettzone_frames.py`, this doesn't cache corners across runs — it's for warping one video at a time, not a whole tournament's worth of cameras.

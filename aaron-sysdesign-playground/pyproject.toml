@@ -22,3 +22,13 @@ dev = [
 # `from <service> import X` imports elsewhere; ruff's default unused-import
 # check doesn't know that's the point of the file.
 "__init__.py" = ["F401"]
+
+[tool.uv]
+# roboflow depends on opencv-python-headless, which installs its own native
+# cv2 extension into the same site-packages/cv2 as our direct opencv-python
+# dependency -- having both installed corrupts the merged module (breaks on
+# import with an AttributeError in cv2.gapi). We need the non-headless
+# build anyway, for warp/'s imshow/waitKey-based corner picker. This
+# overrides opencv-python-headless everywhere in the dependency graph with
+# an unsatisfiable marker, so uv resolves/installs only opencv-python.
+override-dependencies = ["opencv-python-headless; sys_platform == 'never'"]
