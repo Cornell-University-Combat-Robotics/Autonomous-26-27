@@ -24,7 +24,7 @@ from warp import FloorWarper, close_review_window, pick_corners  # noqa: E402
 
 # ----------------------------- config ---------------------------------------
 
-VIDEO_URL = "https://nhrl-matches.us-east-1.linodeobjects.com/proxy/Cage-6-Overhead-High-2026-02-07_16-13-01.984_720p.mp4"  # set this to the video to download, then run this script
+VIDEO_URL = "https://nhrl-matches.us-east-1.linodeobjects.com/proxy/Cage-2-Overhead-High-2026-05-02_17-09-50.922_720p.mp4"  # set this to the video to download, then run this script
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "videos"
 FOURCC = "mp4v"  # broadly supported by opencv for .mp4 containers
