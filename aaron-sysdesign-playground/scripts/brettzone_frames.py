@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Scrape a few frames from every 2026 NHRL fight on BrettZone and upload to Roboflow.
+Scrape a few frames from NHRL fights on BrettZone and upload to Roboflow.
 
 No full video downloads: recordings are plain MP4s on object storage, so
 `ffmpeg -ss T -i URL -frames:v 1` seeks via HTTP range requests and only pulls
@@ -22,6 +22,11 @@ Usage:
     python brettzone_frames.py --upload        # scrape + upload to Roboflow
     python brettzone_frames.py --dry-run       # just list what would be scraped, no prompts
     python brettzone_frames.py --recalibrate   # forget cached corners, re-prompt every camera
+
+    # 50 frames/match from every match "huey" fought in, skipping May 2026 only
+    # (May 2025 IDs use "may25", so "may26" leaves that year's May alone)
+    python brettzone_frames.py --robot huey --exclude-tournament may26 \
+        --frames-per-match 50 --upload
 
     # you clicked a bad quad for a whole camera: wipe its local frames,
     # Roboflow uploads, and cached corners, then reprocess + re-upload it
@@ -73,9 +78,9 @@ HEADERS = {"X-API-Key": "huey-yolo-dataset"}  # any value; identifies you polite
 OUT_DIR = Path("frames")
 MANIFEST = Path("manifest.json")
 
-YEAR = 2026
+YEARS = {2025, 2026}
 WEIGHT_CLASSES = {3}          # lbs; BrettZone files XP brackets under 3lb too
-PUBLIC_ONLY = True            # unlisted 2026 brackets are mostly test/dup copies
+PUBLIC_ONLY = True            # unlisted brackets are mostly test/dup copies
 CAMERA_REGEX = r"Overhead"    # e.g. r"Overhead|Ceiling" or r".*" for every angle
 QUALITY = "proxy720"          # proxy720 | proxy360 | s3path (original)
 FRAMES_PER_VIDEO = 4          # sampled evenly across the fight
@@ -86,10 +91,10 @@ TOURNAMENT_SKIP = re.compile(r"livestats|test|dummy|soccer", re.I)
 WARPER = FloorWarper()
 
 # Roboflow (only needed with --upload)
-ROBOFLOW_API_KEY = "<YOUR_ROBOFLOW_API_KEY>"
+ROBOFLOW_API_KEY = "Y7v6MgucolBH3nV90OeP"
 ROBOFLOW_WORKSPACE = "crc-autonomous"
 ROBOFLOW_PROJECT = "nhrl-sampled-segmentation"
-ROBOFLOW_BATCH = "5-per-match-brettzone-2026"
+ROBOFLOW_BATCH = "50-huey-no-may"
 
 # ----------------------------- helpers --------------------------------------
 
@@ -227,23 +232,35 @@ def resolve_warp_key(tid: str, game_id: str, cam: str) -> str:
 # ----------------------------- pipeline -------------------------------------
 
 
-def get_2026_tournaments() -> list[dict]:
+def get_tournaments(exclude_patterns: list[str] | None = None) -> list[dict]:
     ts = api_get("/tournaments")["tournaments"]
+    extra_skip = [re.compile(p, re.I) for p in (exclude_patterns or [])]
     keep = []
     for t in ts:
-        if year_of(t) != YEAR:
+        if year_of(t) not in YEARS:
             continue
         if t.get("WeightClass") not in WEIGHT_CLASSES:
             continue
         if PUBLIC_ONLY and t.get("privacy") != "public":
             continue
-        if TOURNAMENT_SKIP.search(t["tournamentID"] + t["tournamentName"]):
+        haystack = t["tournamentID"] + t["tournamentName"]
+        if TOURNAMENT_SKIP.search(haystack):
+            continue
+        if any(rx.search(haystack) for rx in extra_skip):
             continue
         keep.append(t)
     return keep
 
 
-def iter_2026_fights(tournament_ids: set[str]):
+def fight_has_robot(fight: dict, robot: str) -> bool:
+    """Case-insensitive substring match against either competitor's clean name."""
+    robot = robot.lower()
+    p1 = (fight.get("player1clean") or "").lower()
+    p2 = (fight.get("player2clean") or "").lower()
+    return robot in p1 or robot in p2
+
+
+def iter_fights(tournament_ids: set[str], robot: str | None = None):
     """Fetch each tournament's fight list directly (has the real gameID,
     unlike the global /fights feed, which only exposes the bracket label
     e.g. "W:4-1" under "id" and duplicates entries)."""
@@ -254,6 +271,8 @@ def iter_2026_fights(tournament_ids: set[str]):
                 continue
             if not f.get("matchLength") or not f.get("cams"):
                 continue  # never fought / no video
+            if robot and not fight_has_robot(f, robot):
+                continue
             yield f
 
 
@@ -480,11 +499,23 @@ def redo_match(tid: str, game_id: str, cam: str, manifest: dict, dry: bool) -> N
 
 
 def main() -> None:
+    global FRAMES_PER_VIDEO
     ap = argparse.ArgumentParser()
     ap.add_argument("--upload", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit-fights", type=int, default=0,
                     help="stop after N fights (for testing)")
+    ap.add_argument("--robot", metavar="NAME",
+                    help="only pull frames from matches this robot competed in -- "
+                         "case-insensitive substring match against player1clean/"
+                         "player2clean, e.g. --robot huey")
+    ap.add_argument("--exclude-tournament", metavar="PATTERN", action="append", default=[],
+                    help="skip tournaments whose ID or name matches this regex "
+                         "(case-insensitive); can be passed multiple times, e.g. "
+                         "--exclude-tournament may excludes every May tournament")
+    ap.add_argument("--frames-per-match", type=int, default=FRAMES_PER_VIDEO,
+                    help="frames sampled per match, evenly spaced across the fight "
+                         "(default: %(default)s)")
     ap.add_argument("--recalibrate", action="store_true",
                     help="forget cached floor corners and re-prompt for every camera")
     ap.add_argument("--redo", metavar="TOURNAMENT_ID/CAMERA",
@@ -504,6 +535,8 @@ def main() -> None:
 
     OUT_DIR.mkdir(exist_ok=True)
     manifest = load_manifest()
+
+    FRAMES_PER_VIDEO = args.frames_per_match
 
     if args.redo:
         tid, _, cam = args.redo.partition("/")
@@ -526,8 +559,8 @@ def main() -> None:
         else:
             WARPER.calibrate(key, np.array(pts, dtype=np.float32))
 
-    tournaments = get_2026_tournaments()
-    print(f"{len(tournaments)} tournaments in {YEAR}:")
+    tournaments = get_tournaments(args.exclude_tournament)
+    print(f"{len(tournaments)} tournaments in {sorted(YEARS)}:")
     for t in tournaments:
         print(f"  {t['tournamentID']:30s} {t['tournamentName']}")
 
@@ -537,7 +570,7 @@ def main() -> None:
     reviewing = not args.dry_run
     with cf.ThreadPoolExecutor(MAX_WORKERS) as pool:
         futures = []
-        for f in iter_2026_fights(tids):
+        for f in iter_fights(tids, args.robot):
             if args.limit_fights and n_fights >= args.limit_fights:
                 break
             tid = f["tournamentID"]
