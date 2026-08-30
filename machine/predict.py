@@ -1,0 +1,320 @@
+import os
+import time
+import cv2
+import math
+from dotenv import load_dotenv
+from ultralytics import YOLO
+
+# from template_model import TemplateModel # to run in machine
+from machine.template_model import TemplateModel  # to run in main
+
+load_dotenv()
+
+ROBOFLOW_API_KEY = os.getenv("ROBOFLOW_API_KEY")
+FONT = cv2.FONT_HERSHEY_SIMPLEX
+DEBUG = False
+
+
+class YoloModel(TemplateModel):
+    # General template for using YOLO to load model files and use them.
+
+    def __init__(self, model_name, model_type, image_size, device=None):
+        match model_type:
+            case "TensorRT":
+                # Works best on NVIDIA GPUs, engine file must be compiled on the PC that it is running on.
+                model_extension = ".engine"
+                self.model = YOLO(
+                    f"./machine/models/{model_name}/{image_size}/{model_name}{model_extension}")
+            case "ONNX":
+                # Optimal for CPU performance
+                model_extension = ".onnx"
+                self.model = YOLO(
+                    f"./machine/models/{model_name}/{image_size}/{model_name}{model_extension}")
+            case "PT":
+                # Default kinda
+                model_extension = ".pt"
+                self.model = YOLO(
+                    f"./machine/models/{model_name}/{image_size}/{model_name}{model_extension}")
+            case "OpenVINO":
+                # Optimal for Intel CPUs, needs a lil work
+                self.model = YOLO(
+                    f"./machine/models/{model_name}/{image_size}/{model_name}_openvino_model/")
+            case "CoreML":
+                # Optimal for M-series Macs
+                model_extension = ".mlpackage"
+                self.model = YOLO(
+                    f"./machine/models/{model_name}/{image_size}/{model_name}{model_extension}")
+            case _:
+                raise ValueError(
+                    f"Invalid model type: {model_type}. Must be one of 'TensorRT', 'ONNX', 'PT', 'OpenVINO', or 'CoreML'.")
+
+        self.device = device
+        self.img_size = image_size
+        # compiled_model = core.compile_model(model=model, device_name=device.value)
+
+    def predict(self, img, confidence_threshold=0.10, show=False, track=False, rs=None):
+        # Max_det = max number of detections, 3 for housebot + 2 bots. 
+        # Stops YOLO from hallucinating extra bots when confidence is low. 
+        # Iou=0.8 to prevent multiple detections on same bot.
+        predict_kwargs = {
+            "verbose": False, 
+            "task": self.model.task,
+            "imgsz": self.img_size, 
+            "max_det": 5,
+            "conf": confidence_threshold
+        }
+        
+        if self.device is not None:
+            predict_kwargs["device"] = self.device
+
+        if track:
+            # persist=True is required to link detections across video frames.
+            # tracker="bytetrack.yaml" is usually the best default, but you can also try "botsort.yaml"
+            predict_kwargs.pop("task")
+            results = self.model.track(img, persist=True, tracker="bytetrack.yaml", **predict_kwargs)
+        else:
+            results = self.model(img, **predict_kwargs)
+
+        result = results[0]
+
+        # 1. BATCH EXTRACT EVERYTHING TO CPU ONCE
+        if result.boxes is None or len(result.boxes) == 0:
+             return {"bots": [], "housebot": []}
+
+        boxes_xyxy = result.boxes.xyxy.cpu().numpy()
+        boxes_xywh = result.boxes.xywh.cpu().numpy()
+        boxes_cls = result.boxes.cls.cpu().numpy()
+        
+        if track and result.boxes.id is not None:
+            boxes_id = result.boxes.id.cpu().numpy()
+        else:
+            boxes_id = [None] * len(boxes_xyxy)
+
+        robots = []
+        housebots = []
+
+        # 2. Iterate over the NumPy arrays (much faster)
+        for i in range(len(boxes_xyxy)):
+            x1, y1, x2, y2 = boxes_xyxy[i]
+            cx, cy, _, _ = boxes_xywh[i]
+            cls = boxes_cls[i]
+            track_id = boxes_id[i]
+
+            # 3. Clip coordinates safely
+            x1_c, y1_c = max(0, x1), max(0, y1)
+            x2_c, y2_c = min(700, x2), min(700, y2)
+
+            cropped_img = img[int(y1_c): int(y2_c), int(x1_c): int(x2_c)]
+
+            data = {
+                "bbox": [[x1_c, y1_c], [x2_c, y2_c]],
+                "center": [cx, cy],
+                "img": cropped_img
+            }
+            if track:
+                data["track_id"] = track_id
+
+            if cls == 0:
+                housebots.append(data)
+            else:
+                robots.append(data)
+
+        output = {"bots": robots, "housebot": housebots}
+        return output
+
+    def track(self, img, show=False, rs=None):
+        return self.predict(img, show=show, track=True, rs=rs)
+
+    def show_predictions(self, img, bots_dict):
+        for label, bots in bots_dict.items():
+
+            for bot in bots:
+
+                # Extract bounding box coordinates and class details
+                x_min, y_min = bot["bbox"][0]
+                x_max, y_max = bot["bbox"][1]
+
+                # Choose color based on the class
+                if "housebot" in label:
+                    color = (0, 0, 255)  # Red for housebot
+                else:
+                    color = (255, 255, 255)  # White for bots
+
+                # Draw the bounding box
+                cv2.rectangle(img, (int(x_min), int(y_min)),
+                              (int(x_max), int(y_max)), color, 2)
+
+        return img
+
+
+class RoboflowModel(TemplateModel):
+    def __init__(self):
+        self.model = get_model(model_id="nhrl-robots/14",
+                               api_key=ROBOFLOW_API_KEY)  # TODO
+
+    def predict(self, img, confidence_threshold=0.5, show=False, track=False, rs=None):
+        out = self.model.infer(img)
+
+        bots = {}
+        bots["housebot"] = []
+        bots["bots"] = []
+
+        preds = out[0].predictions
+
+        housebot_candidates = []
+
+        for pred in preds:
+            if pred.confidence > confidence_threshold:
+                p = {}
+                if pred.class_id == 0:
+                    name = "housebot"
+                    housebot_candidates.append(pred)
+                elif pred.class_id == 1:
+                    name = "bots"
+
+                x, y, box_width, box_height = pred.x, pred.y, pred.width, pred.height
+                if DEBUG:
+                    print(
+                        f"x: {x}, y: {y}, box_width: {box_width}, box_height: {box_height}"
+                    )
+
+                p["center"] = [x, y]
+
+                img_height, img_width = img.shape[:2]
+                x_min = max(0, int(x - box_width / 2) - 20)
+                y_min = max(0, int(y - box_height / 2) - 20)
+                x_max = min(img_width, int(x + box_width / 2) + 20)
+                y_max = min(img_height, int(y + box_height / 2) + 20)
+
+                # Extract bounding box
+                screenshot = img[y_min:y_max, x_min:x_max]
+
+                if DEBUG:
+                    cv2.imshow("Screenshot", screenshot)
+                    cv2.waitKey(0)
+
+                p["bbox"] = [[x_min, y_min], [x_max, y_max]]
+                p["img"] = screenshot
+
+                if name == "bots":
+                    bots[name].append(p)
+
+        # Select the most confident housebot
+        if housebot_candidates:
+            best_housebot = max(housebot_candidates,
+                                key=lambda pred: pred.confidence)
+
+            # Process the most confident housebot
+            x, y, box_width, box_height = (
+                best_housebot.x,
+                best_housebot.y,
+                best_housebot.width,
+                best_housebot.height,
+            )
+            p = {
+                "center": [x, y],
+                "bbox": [
+                    [int(x - box_width / 2) - 20, int(y - box_height / 2) - 20],
+                    [int(x + box_width / 2) + 20, int(y + box_height / 2) + 20],
+                ],
+                "img": img[
+                    int(y - box_height / 2) - 20: int(y + box_height / 2) + 20,
+                    int(x - box_width / 2) - 20: int(x + box_width / 2) + 20,
+                ],
+            }
+            bots["housebot"].append(p)
+
+        if show:
+            self.show_predictions(img, bots)
+        return bots
+
+    def show_predictions(self, img, predictions):
+        # Display housebot
+        housebots = predictions["housebot"]
+        bots = predictions["bots"]
+
+        color = (0, 0, 255)  # Red for housebots
+        for housebot in housebots:
+            x_min, y_min = housebot["bbox"][0]
+            x_max, y_max = housebot["bbox"][1]
+            center_x, center_y = housebot["center"]
+
+            # Draw the bounding box
+            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+
+            # Add label text
+            cv2.putText(img, "housebot", (int(x_min), int(
+                y_min - 10)), FONT, 0.5, color, 2)
+
+        color = (255, 255, 255)  # White for bots
+        for bot in bots:
+            x_min, y_min = bot["bbox"][0]
+            x_max, y_max = bot["bbox"][1]
+            center_x, center_y = bot["center"]
+
+            # Draw the bounding box
+            cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+
+            # Add label text
+            cv2.putText(img, "bot", (int(x_min), int(y_min - 10)),
+                        FONT, 0.5, color, 2)
+
+        # print(f"Detected [{len(housebots)} housebots], [{len(bots)} bots]")
+
+        # for name, data in predictions.items():
+        #     # Extract bounding box coordinates and class details
+        #     x_min, y_min = data['bbox'][0]
+        #     x_max, y_max = data['bbox'][1]
+        #     center_x, center_y = data['center']
+
+        #     # Choose color based on the class
+        #     if 'housebot' in name:
+        #         color = (0, 0, 255)  # Red for housebot
+        #     else:
+        #         color = (0, 255, 0)  # Green for bots
+
+        #     # Draw the bounding box
+        #     cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color, 2)
+
+        #     # Add label text
+        #     cv2.putText(
+        #         img, name,
+        #         (int(x_min), int(y_min - 10)),  # Slightly above the top-left corner
+        #         cv2.FONT_HERSHEY_SIMPLEX,
+        #         0.5, color, 2
+        #     )
+
+        # Display the image with predictions
+        # cv2.imshow("Roboflow Predictions", img)
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
+
+    def train(self, batch, epoch, train_path, validation_path, save_path, save):
+        return super().train(batch, epoch, train_path, validation_path, save_path, save)
+
+    def evaluate(self, test_path):
+        return super().evaluate(test_path)
+
+
+# Main code block
+if __name__ == "__main__":
+
+    print("starting testing with PT model")
+    # predictor = YoloModel("100epoch11","PT")
+    predictor = RoboflowModel()
+
+    img_path = (
+        os.getcwd() + "/main_files/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg"
+    )
+    img = cv2.imread(img_path)
+
+    # cv2.imshow("Original image", img)
+    # cv2.waitKey(0)
+
+    start_time = time.time()
+    bots = predictor.predict(img, show=True)
+    end_time = time.time()
+    elapsed = end_time - start_time
+    print(f"elapsed time: {elapsed:.4f}")
+
+    # predictor.show_predictions(img, bots)
