@@ -1,0 +1,80 @@
+name: CI
+
+# When should this workflow run?
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+
+jobs:
+  video-test:
+    name: Run Robotics Subsystem Video Test
+
+    # GitHub's temporary Ubuntu machine
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # --------------------------------------------------
+      # 1. Download your repository
+      # --------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Tell GitHub to download files tracked by Git LFS
+          lfs: true
+
+
+      # --------------------------------------------------
+      # 2. Set up Python
+      # --------------------------------------------------
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "YOUR_PYTHON_VERSION"
+
+
+      # --------------------------------------------------
+      # 3. Install Python dependencies
+      # --------------------------------------------------
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+
+      # --------------------------------------------------
+      # 4. Verify Git LFS files actually exist
+      # --------------------------------------------------
+      - name: Verify Git LFS files
+        run: |
+          git lfs ls-files
+          git lfs pull
+
+
+      # --------------------------------------------------
+      # 5. Verify the test video exists
+      # --------------------------------------------------
+      - name: Verify test video
+        run: |
+          if [ ! -f "YOUR_VIDEO_PATH" ]; then
+            echo "ERROR: Test video not found!"
+            exit 1
+          fi
+
+          echo "Test video found."
+
+
+      # --------------------------------------------------
+      # 6. Run your actual robotics subsystem
+      # --------------------------------------------------
+      - name: Run video test
+        run: |
+          python YOUR_MAIN_FILE.py --video "YOUR_VIDEO_PATH"
