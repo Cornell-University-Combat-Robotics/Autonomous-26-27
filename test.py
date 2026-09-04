@@ -42,7 +42,7 @@ MODE = "video"
 # MODE = "custom"
 
 # Core behavior
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
 CAN_RECOVER = True
@@ -194,7 +194,7 @@ def main():
         else:
             warped_frame, homography_matrix = read_prev_homography(
                 captured_image, folder + "/homography_matrix.txt")
-            selected_colors = read_prev_colors(folder + "/selected_colors.txt")
+            selected_colors = read_prev_colors(folder + "/selected_colors_test.txt")
 
         # Build warp maps from homography matrix for faster warping in the main loop
         map_x, map_y = get_warp_maps(homography_matrix)
