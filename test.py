@@ -193,7 +193,7 @@ def main():
         # 3. Or use the previously saved Homography Matrix and colors from the txt file
         else:
             warped_frame, homography_matrix = read_prev_homography(
-                captured_image, folder + "/homography_matrix.txt")
+                captured_image, folder + "/homography_matrix_test.txt")
             selected_colors = read_prev_colors(folder + "/selected_colors_test.txt")
 
         # Build warp maps from homography matrix for faster warping in the main loop

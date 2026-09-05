@@ -4,13 +4,12 @@ name: CI
 on:
   push:
     branches:
-      - main
-      - develop
+      - testing_actions
 
-  pull_request:
-    branches:
-      - main
-      - develop
+  # pull_request:
+  #   branches:
+  #     - main
+  #     - develop
 
 
 jobs:
@@ -27,9 +26,9 @@ jobs:
       # --------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          # Tell GitHub to download files tracked by Git LFS
-          lfs: true
+        # with:
+        #   # Tell GitHub to download files tracked by Git LFS
+        #   lfs: true
 
 
       # --------------------------------------------------
@@ -38,7 +37,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "YOUR_PYTHON_VERSION"
+          python-version: "3.13.12"
 
 
       # --------------------------------------------------
@@ -53,23 +52,10 @@ jobs:
       # --------------------------------------------------
       # 4. Verify Git LFS files actually exist
       # --------------------------------------------------
-      - name: Verify Git LFS files
-        run: |
-          git lfs ls-files
-          git lfs pull
-
-
-      # --------------------------------------------------
-      # 5. Verify the test video exists
-      # --------------------------------------------------
-      - name: Verify test video
-        run: |
-          if [ ! -f "YOUR_VIDEO_PATH" ]; then
-            echo "ERROR: Test video not found!"
-            exit 1
-          fi
-
-          echo "Test video found."
+      # - name: Verify Git LFS files
+      #   run: |
+      #     git lfs ls-files
+      #     git lfs pull
 
 
       # --------------------------------------------------
@@ -77,4 +63,4 @@ jobs:
       # --------------------------------------------------
       - name: Run video test
         run: |
-          python YOUR_MAIN_FILE.py --video "YOUR_VIDEO_PATH"
+          python test.py
