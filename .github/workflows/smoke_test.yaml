@@ -19,6 +19,9 @@ jobs:
     # GitHub's temporary Ubuntu machine
     runs-on: ubuntu-latest
 
+    env:
+      QT_QPA_PLATFORM: offscreen
+
     steps:
 
       # --------------------------------------------------
