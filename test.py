@@ -13,7 +13,7 @@ from camera_stream import CameraStream
 from runtimesheet.runtimesheet import RuntimeSheet
 from algorithm.ram import Ram
 from corner_detection.corner_detection import RobotCornerDetection
-from main_helpers import (
+from test_helpers import (
     display_angles,
     draw_hud,
     first_run,
@@ -54,14 +54,14 @@ USE_TRACKING = True       # Use tracking-based predictor instead of running dete
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
 
 # Logging / debug outputs
-SHEET_RUNTIME = True
+SHEET_RUNTIME = False
 rs = RuntimeSheet(use=SHEET_RUNTIME)
 
 # Display toggles
-SHOW_FRAME = True
-DISPLAY_ANGLES = True  # Only applies when SHOW_FRAME is True
-SHOW_HUD = True
-SHOW_QUANTIZED_HUEY = True
+SHOW_FRAME = False
+DISPLAY_ANGLES = False  # Only applies when SHOW_FRAME is True
+SHOW_HUD = False
+SHOW_QUANTIZED_HUEY = False
 
 # Hardware / controls
 JANK_CONTROLLER = False  # Deprecated backup controller path
@@ -171,7 +171,7 @@ def main():
         if CAMERA_STREAM:
             stream = CameraStream(camera_number).start()
             captured_image = key_frame(
-                stream, CAMERA_STREAM, selection_scale=DISPLAY_SCALE)
+                stream, CAMERA_STREAM)
         else:
             cap = cv2.VideoCapture(camera_number)
 
@@ -182,7 +182,7 @@ def main():
                 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
             captured_image = key_frame(
-                cap, CAMERA_STREAM, selection_scale=DISPLAY_SCALE)
+                cap, CAMERA_STREAM)
 
         # 3. Use the initial frame to get a new Homography Matrix and new colors
         if WARP_AND_COLOR_PICKING:
