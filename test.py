@@ -110,7 +110,8 @@ else:
 folder = os.getcwd() + "/main_files"
 # Video options (uncomment one for MODE = "video")
 # camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+# camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+camera_number = folder + "/test_videos/shorty_vs_prince.mp4"
 # camera_number = folder + "/test_videos/huey_hell.mp4"
 # camera_number = folder + "/test_videos/huey_in_n_out.mp4"
 # camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
@@ -220,7 +221,7 @@ def main():
             # if WEAPON_ON:
             #     weapon_motor_group.move(1)
 
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
 
         # # Initialize algorithm
         # if WARP_AND_COLOR_PICKING:
@@ -581,10 +582,10 @@ def main():
         if CAMERA_STREAM:
             if stream:
                 stream.stop()
-                cv2.destroyAllWindows()
+                # cv2.destroyAllWindows()
         elif cap != None:
             cap.release()
-            cv2.destroyAllWindows()
+            # cv2.destroyAllWindows()
 
         rs.save("itertimes")
 
