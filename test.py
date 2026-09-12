@@ -481,62 +481,62 @@ def main():
         perception_thread.start()
 
         # ----------------------------------------------------------------------
-        # Display UI Loop (Runs in Main Thread)
-        while not stop_event.is_set():
-            if frame_buffer:
-                frames = frame_buffer[0]
+        # # Display UI Loop (Runs in Main Thread)
+        # while not stop_event.is_set():
+        #     if frame_buffer:
+        #         frames = frame_buffer[0]
 
-                if frames["main"] is not None and SHOW_FRAME:
-                    name = "Battle with Predictions" if DISPLAY_ANGLES else "Bounding boxes (no angles)"
-                    cv2.imshow(name, frames["main"])
-                    # cv2.waitKey(0)
-                    # cv2.destroyAllWindows()
+        #         if frames["main"] is not None and SHOW_FRAME:
+        #             name = "Battle with Predictions" if DISPLAY_ANGLES else "Bounding boxes (no angles)"
+        #             cv2.imshow(name, frames["main"])
+        #             # cv2.waitKey(0)
+        #             # cv2.destroyAllWindows()
 
-                if frames["huey"] is not None and SHOW_QUANTIZED_HUEY:
-                    cv2.imshow("Quantized Huey", frames["huey"])
+        #         if frames["huey"] is not None and SHOW_QUANTIZED_HUEY:
+        #             cv2.imshow("Quantized Huey", frames["huey"])
 
-            # waitKeyEx(1) pumps GUI events reliably and captures key presses.
-            key = cv2.pollKey()
+        #     # waitKeyEx(1) pumps GUI events reliably and captures key presses.
+        #     key = cv2.pollKey()
 
-            if key != -1:
-                key_8bit = key & 0xFF
-                if key_8bit == ord("q"):
-                    stop_event.set()
-                elif key_8bit == ord("f"):
-                    print("Backup flipped key pressed")
-                    with shared_state_lock:
-                        if shared_state["flipped"] is None:
-                            shared_state["flipped"] = True
-                        else:
-                            shared_state["flipped"] = not shared_state["flipped"]
-                        if shared_state["paused"]:
-                            shared_state["skip_frame"] = True
-                elif key_8bit == ord("p"):
-                    with shared_state_lock:
-                        shared_state["paused"] = not shared_state["paused"]
-                        shared_state["skip_frame"] = False
-                        paused_now = shared_state["paused"]
-                    print(
-                        f"Playback {'paused' if paused_now else 'resumed'}")
-                elif key_8bit == ord("w"):
-                    with shared_state_lock:
-                        shared_state["weapon_on"] = not shared_state["weapon_on"]
-                        weapon_now = shared_state["weapon_on"]
-                    print(
-                        f"Weapon {'ON' if weapon_now else 'OFF'}")
-                else:
-                    with shared_state_lock:
-                        if shared_state["paused"]:
-                            # Any other key while paused skips one frame.
-                            shared_state["skip_frame"] = True
+        #     if key != -1:
+        #         key_8bit = key & 0xFF
+        #         if key_8bit == ord("q"):
+        #             stop_event.set()
+        #         elif key_8bit == ord("f"):
+        #             print("Backup flipped key pressed")
+        #             with shared_state_lock:
+        #                 if shared_state["flipped"] is None:
+        #                     shared_state["flipped"] = True
+        #                 else:
+        #                     shared_state["flipped"] = not shared_state["flipped"]
+        #                 if shared_state["paused"]:
+        #                     shared_state["skip_frame"] = True
+        #         elif key_8bit == ord("p"):
+        #             with shared_state_lock:
+        #                 shared_state["paused"] = not shared_state["paused"]
+        #                 shared_state["skip_frame"] = False
+        #                 paused_now = shared_state["paused"]
+        #             print(
+        #                 f"Playback {'paused' if paused_now else 'resumed'}")
+        #         elif key_8bit == ord("w"):
+        #             with shared_state_lock:
+        #                 shared_state["weapon_on"] = not shared_state["weapon_on"]
+        #                 weapon_now = shared_state["weapon_on"]
+        #             print(
+        #                 f"Weapon {'ON' if weapon_now else 'OFF'}")
+        #         else:
+        #             with shared_state_lock:
+        #                 if shared_state["paused"]:
+        #                     # Any other key while paused skips one frame.
+        #                     shared_state["skip_frame"] = True
 
-                # Pass key to perception thread for algorithm hooks.
-                with shared_state_lock:
-                    shared_state["key"] = key_8bit
+        #         # Pass key to perception thread for algorithm hooks.
+        #         with shared_state_lock:
+        #             shared_state["key"] = key_8bit
 
-            # Check if thread died
-            if not perception_thread.is_alive():
-                break
+        #     # Check if thread died
+        #     if not perception_thread.is_alive():
+        #         break
 
         # Wait for the background perception thread to finish its current iteration and exit
         perception_thread.join()
