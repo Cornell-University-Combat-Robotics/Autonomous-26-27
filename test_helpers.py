@@ -163,12 +163,12 @@ def first_run(predictor, warped_frame, SHOW_FRAME, corner_detection, selected_co
         display_angles(first_run_orientation, first_move_dictionary,
                        warped_frame, True, centroids=corner_detection.centroids)
         # cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
     else:
         algorithm = Ram()
         # cv2.imshow("", warped_frame)
         # cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
         print("Warning: Initial detection of Huey and enemy robot failed." + "\n")
 
     return algorithm
