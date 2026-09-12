@@ -479,6 +479,8 @@ def main():
         # Start the Perception Thread
         perception_thread = threading.Thread(target=perception_pipeline, daemon=True)
         perception_thread.start()
+        
+        cv2.waitKey(0)
 
         # ----------------------------------------------------------------------
         # # Display UI Loop (Runs in Main Thread)
@@ -556,10 +558,12 @@ def main():
 
     except KeyboardInterrupt:
         print("KEYBOARD INTERRUPT CLEAN UP")
-    except Exception as exception:
-        print("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:", exception)
-    finally:
 
+    # Allow tests to fail for GH Actions
+    # except Exception as exception:
+    #     print("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:", exception)
+
+    finally:
         # Newbie squadron trial
         try:
             color_df = pd.DataFrame(corner_detection.color_percentage_rows)
