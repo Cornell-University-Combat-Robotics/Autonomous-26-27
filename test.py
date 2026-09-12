@@ -479,8 +479,6 @@ def main():
         # Start the Perception Thread
         perception_thread = threading.Thread(target=perception_pipeline, daemon=True)
         perception_thread.start()
-        
-        cv2.waitKey(0)
 
         # ----------------------------------------------------------------------
         # # Display UI Loop (Runs in Main Thread)
