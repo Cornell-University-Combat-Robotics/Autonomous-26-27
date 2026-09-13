@@ -2,14 +2,14 @@ name: CI
 
 # When should this workflow run?
 on:
-  # push:
-  #   branches:
-  #     - testing_actions
-
-  pull_request:
+  push:
     branches:
+      - testing_actions
+
+  # pull_request:
+  #   branches:
       # - main
-      - develop
+      # - develop
 
 
 jobs:
