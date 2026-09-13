@@ -21,6 +21,18 @@ jobs:
 
     env:
       QT_QPA_PLATFORM: offscreen
+    
+    name: Run Shorty vs Prince
+    env:
+      TEST_VIDEO: "test_videos/shorty_vs_prince.mp4"
+    run: |
+      python test.py
+
+    name: Run Huey Hell
+    env:
+      TEST_VIDEO: "test_videos/blink224_huey.mp4"
+    run: |
+      python test.py
 
     steps:
 
