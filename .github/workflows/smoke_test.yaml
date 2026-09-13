@@ -19,6 +19,9 @@ jobs:
     # GitHub's temporary Ubuntu machine
     runs-on: ubuntu-latest
 
+    env:
+      QT_QPA_PLATFORM: offscreen
+
     steps:
 
       # --------------------------------------------------
@@ -74,4 +77,3 @@ jobs:
           TEST_VIDEO: "test_videos/blink224_huey.mp4"
         run: |
           python test.py
-      QT_QPA_PLATFORM: offscreen
