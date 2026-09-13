@@ -271,7 +271,7 @@ def initialize_quantization():
 
 def quantize(detected_bots, selected_colors, show, is_flipped=1, settings=None):
     
-    print(f"Is flipped: {is_flipped}")
+    print(f"is_flipped: {is_flipped}")
 
     # Settings if no custom settings are input:
     custom_weights = None
