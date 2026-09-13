@@ -21,7 +21,6 @@ processed will print the problem, and return captured_image as none.
 
 
 def key_frame(stream, CAMERA_STREAM):
-    print("🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐🐐")
     captured_image = None
 
     if stream is None:
@@ -35,8 +34,6 @@ def key_frame(stream, CAMERA_STREAM):
         captured_image = frame.copy()
     else:
         print("Failed to read frame\n")
-
-    print("😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈😈")
     return captured_image
 
 
