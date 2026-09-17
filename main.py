@@ -496,7 +496,7 @@ def main():
                     cv2.imshow("Quantized Huey", frames["huey"])
 
             # waitKeyEx(1) pumps GUI events reliably and captures key presses.
-            key = cv2.pollKey()
+            # key = cv2.pollKey()
 
             if key != -1:
                 key_8bit = key & 0xFF
