@@ -1,7 +1,7 @@
 import logging
 import time
 
-time.sleep(5)
+time.sleep(1)
 
 logger = logging.getLogger("example_service")
 
