@@ -220,8 +220,6 @@ def main():
             # if WEAPON_ON:
             #     weapon_motor_group.move(1)
 
-        cv2.destroyAllWindows()
-
         # # Initialize algorithm
         # if WARP_AND_COLOR_PICKING:
         #     algorithm = first_run(predictor, warped_frame,
