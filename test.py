@@ -581,10 +581,10 @@ def main():
         if CAMERA_STREAM:
             if stream:
                 stream.stop()
-                cv2.destroyAllWindows()
+                # cv2.destroyAllWindows()
         elif cap != None:
             cap.release()
-            cv2.destroyAllWindows()
+            # cv2.destroyAllWindows()
 
         rs.save("itertimes")
 
