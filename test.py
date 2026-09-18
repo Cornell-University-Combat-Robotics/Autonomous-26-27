@@ -110,7 +110,7 @@ else:
 folder = os.getcwd() + "/main_files"
 # Video options (uncomment one for MODE = "video")
 # camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+camera_number = folder + os.getenv("TEST VIDEO", "/test_videos/huey_vs_prince.mp4")
 # camera_number = folder + "/test_videos/huey_hell.mp4"
 # camera_number = folder + "/test_videos/huey_in_n_out.mp4"
 # camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
@@ -186,15 +186,17 @@ def main():
 
         # 3. Use the initial frame to get a new Homography Matrix and new colors
         if WARP_AND_COLOR_PICKING:
+            matrix_path = os.getenv("MATRIX", "/homography_matrix_test.txt")
+            colors_path = os.getenv("COLOR", "/selected_colors_test.txt")
             warped_frame, homography_matrix = make_new_homography(
                 captured_image, selection_scale=DISPLAY_SCALE)
             selected_colors = make_new_colors(
-                folder + "/selected_colors_test.txt", warped_frame)
+                folder + "/testing_actions_files" + matrix_path, warped_frame)
         # 3. Or use the previously saved Homography Matrix and colors from the txt file
         else:
             warped_frame, homography_matrix = read_prev_homography(
-                captured_image, folder + "/homography_matrix_test.txt")
-            selected_colors = read_prev_colors(folder + "/selected_colors_test.txt")
+                captured_image, folder + "/testing_actions_files" + "/homography_matrix_test.txt")
+            selected_colors = read_prev_colors(folder + colors_path)
 
         # Build warp maps from homography matrix for faster warping in the main loop
         map_x, map_y = get_warp_maps(homography_matrix)
