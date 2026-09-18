@@ -186,17 +186,17 @@ def main():
 
         # 3. Use the initial frame to get a new Homography Matrix and new colors
         if WARP_AND_COLOR_PICKING:
-            matrix_path = os.getenv("MATRIX", "/homography_matrix_test.txt")
-            colors_path = os.getenv("COLOR", "/selected_colors_test.txt")
             warped_frame, homography_matrix = make_new_homography(
                 captured_image, selection_scale=DISPLAY_SCALE)
             selected_colors = make_new_colors(
-                folder + "/testing_actions_files" + matrix_path, warped_frame)
+                folder + "selected_colors.txt", warped_frame)
         # 3. Or use the previously saved Homography Matrix and colors from the txt file
         else:
+            matrix_path = os.getenv("MATRIX", "/homography_matrix_test.txt")
+            colors_path = os.getenv("COLOR", "/selected_colors_test.txt")
             warped_frame, homography_matrix = read_prev_homography(
-                captured_image, folder + "/testing_actions_files" + "/homography_matrix_test.txt")
-            selected_colors = read_prev_colors(folder + colors_path)
+                captured_image, folder + "/testing_actions_files" + matrix_path)
+            selected_colors = read_prev_colors(folder + "/testing_actions_files" + colors_path)
 
         # Build warp maps from homography matrix for faster warping in the main loop
         map_x, map_y = get_warp_maps(homography_matrix)
