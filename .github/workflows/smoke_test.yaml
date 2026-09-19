@@ -2,9 +2,9 @@ name: CI
 
 # When should this workflow run?
 on:
-  # push:
-  #   branches:
-  #     - testing_actions
+  push:
+    branches:
+      - testing_actions
 
   pull_request:
     branches:
