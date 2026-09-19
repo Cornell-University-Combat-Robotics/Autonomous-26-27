@@ -369,6 +369,14 @@ def main():
                         corner_detection.set_bots(detected_bots)
                         print("called corner main")
                         detected_bots_with_data, confidence = corner_detection.corner_detection_main(area_threshold, algorithm.huey_previous_orientations, is_flipped=is_flipped, tolerance=15)
+                        if detected_bots_with_data["huey"]:
+                            # Raw orientation may be None when Huey is seen
+                            assert ( detected_bots_with_data["huey"]["center"]  is not None )
+
+                        assert ( algorithm.huey_orientation is not None )
+                        assert ( algorithm.huey_position  is not None )
+                        
+                        # assert ( detected_bots_with_data["huey"]["position"]  is not None)
                         print("Confidence 😤😤😤: ", confidence)
 
                     # Prepare Quantized Huey Image (for display buffer)

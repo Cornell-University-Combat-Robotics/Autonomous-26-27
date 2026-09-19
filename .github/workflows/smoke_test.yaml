@@ -4,7 +4,7 @@ name: CI
 on:
   push:
     branches:
-      - testing_actions
+      - ‘**’
 
   # pull_request:
   #   branches:
@@ -18,6 +18,10 @@ jobs:
 
     # GitHub's temporary Ubuntu machine
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run a script
+        run: echo “Running on branch ${GITHUB_REF##*/}”
 
     env:
       QT_QPA_PLATFORM: offscreen
