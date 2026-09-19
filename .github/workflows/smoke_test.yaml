@@ -2,26 +2,22 @@ name: CI
 
 # When should this workflow run?
 on:
-  push:
-    branches:
-      - ‘**’
-
-  # pull_request:
+  # push:
   #   branches:
+  #     - testing_actions
+
+  pull_request:
+    branches:
       # - main
-      # - develop
+      - develop
 
 
 jobs:
   video-test:
     name: Run Robotics Subsystem Video Test
 
-    # GitHub's temporary Ubuntu machine
+    # GitHub’s temporary Ubuntu machine
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run a script
-        run: echo “Running on branch ${GITHUB_REF##*/}”
 
     env:
       QT_QPA_PLATFORM: offscreen
@@ -44,8 +40,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13.12"
-          cache: "pip"
+          python-version: “3.13.12”
+          cache: “pip”
           cache-dependency-path: requirements-ci.txt
 
       # --------------------------------------------------
@@ -71,17 +67,6 @@ jobs:
       # --------------------------------------------------
       # 6. Run your actual robotics subsystem
       # --------------------------------------------------
-      - name: Run Huey vs Prince
-        env:
-          TEST_VIDEO: "test_videos/shorty_vs_prince.mp4"
-          MATRIX: "/homography_matrix_test.txt"
-          COLOR: "/selected_colors_test.txt"
-        run: |
-          python test.py
-      - name: Run 2-Corners
-        env: 
-          TEST_VIDEO: "test_videos/blink224_huey.mp4"
-          MATRIX: "/homography_matrix_2corn.txt"
-          COLOR: "/selected_colors_2corn.txt"
+      - name: Run video test
         run: |
           python test.py
