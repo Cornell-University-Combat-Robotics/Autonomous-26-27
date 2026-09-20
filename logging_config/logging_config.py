@@ -1,14 +1,4 @@
-"""Process-wide logging setup: five levels, per-run folders, and locals-capturing traces.
-
-Importing this module installs :class:`Logger` as the class the standard library hands back, so
-every other module just does ``import logging`` and ``logging.getLogger(__name__)``.
-
-This package must not be imported with the repository root on ``sys.path`` under the name
-``logging`` -- the folder is named ``logging_config`` precisely so it cannot shadow the standard
-library's ``logging`` module.
-
-Style reference: https://medium.com/@aman.deep291098/python-custom-logging-made-easy-c89f4972af95
-"""
+# Our style reference: https://medium.com/@aman.deep291098/python-custom-logging-made-easy-c89f4972af95
 
 import logging
 import math
@@ -16,6 +6,7 @@ import os
 import sys
 from time import time
 from types import FrameType, ModuleType
+from datetime import datetime
 
 ERROR_LEVEL = 40
 WARNING_LEVEL = 30
@@ -32,7 +23,7 @@ TRACE_MAX_STACK_DEPTH = 1000
 TRACE_REPR_LIMIT = 200
 TRACE_ARRAY_MAX_ELEMENTS = 32
 
-RUN_NAME = str(int(time()))  # This should be exposed to config file, can be set custom
+RUN_NAME = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # This should be exposed to config file, can be set custom
 
 
 def _safe_repr(value: object, limit: int = TRACE_REPR_LIMIT) -> str:
