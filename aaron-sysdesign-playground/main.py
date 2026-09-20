@@ -10,7 +10,7 @@ from loguru import logger
 
 from algorithm import Algorithm
 from camera import Camera
-from logging_config import configure_logging, parse_args
+from logging import configure_logging, parse_args
 from object_detection import ObjectDetector
 
 NUM_FRAMES = 3  # mock "match length"; real loop runs until stopped
