@@ -43,13 +43,12 @@ MODE = "video"
 # MODE = "custom"
 
 # Core behavior
-WARP_AND_COLOR_PICKING = True
+WARP_AND_COLOR_PICKING = False
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
-CAN_RECOVER = True
 CAN_RECOVER = True
 BLACKOUT = True
 COLOR_QUANTIZATION = True  # Should almost always stay True
-CAMERA_STREAM = True     # Frame capture thread (must be False for videos)
+CAMERA_STREAM = False     # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
 USE_TRACKING = True       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
@@ -134,10 +133,9 @@ with open(quant_settings_file, "r") as f:
     all_settings = json.load(f)
 
 # Quantization Settings
-quantization_settings = None
-# quantization_settings = all_settings["Green Huey"]
-# quantization_settings = all_settings["Green Huey Area"]
-# quantization_settings = all_settings["Purple Huey"]
+# quantization_settings = None
+# quantization_settings = all_settings["Blue Comp"]
+quantization_settings = all_settings["Green Comp"]
 
 DEFAULT_AREA_THRESHOLD = 15
 area_threshold = DEFAULT_AREA_THRESHOLD
@@ -157,7 +155,7 @@ stop_event = threading.Event()
 shared_state_lock = threading.Lock()
 # Shared state for controls passed from UI thread to Perception thread
 shared_state = {"key": None, "flipped": None,
-                "paused": False, "skip_frame": False, "weapon_on": WEAPON_ON}
+                "paused": False, "skip_frame": False, "weapon_on": WEAPON_ON, "weapon_high_speed": True}
 
 prev_sensor_val = 0
 curr_sensor_val = 0
@@ -308,7 +306,7 @@ def main():
                         key = shared_state["key"]
                         manual_is_flipped = -1 if shared_state["flipped"] else 1
                         weapon_on_this_frame = shared_state["weapon_on"]
-                        # Clear transient key so one press is consumed once.
+                        weapon_high_speed = shared_state["weapon_high_speed"]   # ← add this line
                         shared_state["key"] = None
 
                     if IMU_ENABLED:
@@ -368,9 +366,8 @@ def main():
                     # 12. Run Object Detection's results through Corner Detection
                     with rs.log_timing("Corner Detection"):
                         corner_detection.set_bots(detected_bots)
-                        print("called corner main")
+                        # print("called corner main")
                         detected_bots_with_data, confidence = corner_detection.corner_detection_main(area_threshold, algorithm.huey_previous_orientations, is_flipped=is_flipped, tolerance=15)
-                        print("Confidence 😤😤😤: ", confidence)
 
                     # Prepare Quantized Huey Image (for display buffer)
                     huey_display_img = None
@@ -439,8 +436,8 @@ def main():
                             turn = move_dictionary["turn"]
                             motor_group.move(speed*is_flipped, turn * -1)
                             if WEAPON_ON:
-                                weapon_motor_group.move(
-                                    0.3 if weapon_on_this_frame else 0) # 0.8 before
+                                weapon_speed_val = 0.75 if weapon_high_speed else 0.15
+                                weapon_motor_group.move(weapon_speed_val if weapon_on_this_frame else 0)
 
                     # Prepare Main Display Image
                     main_display_img = None
@@ -458,8 +455,7 @@ def main():
 
                             # Call display_angles with show=False to get the image without displaying
                             main_display_img = display_angles(detected_bots_with_data, move_dictionary, warped_frame, is_recovering=algorithm.is_recovering, is_backing=algorithm.is_backing,
-                                                              against_wall=algorithm.against_wall, moving_forward=algorithm.moving_forward, is_flipped=is_flipped, weapon_on=weapon_on_this_frame, centroids=corner_detection.centroids, is_confident=confidence, show=False)
-
+                                      against_wall=algorithm.against_wall, moving_forward=algorithm.moving_forward, is_flipped=is_flipped, weapon_on=weapon_on_this_frame, weapon_high_speed=weapon_high_speed, centroids=corner_detection.centroids, is_confident=confidence, show=False)
                         elif SHOW_FRAME:
                             display_frame = warped_frame
                             if SHOW_HUD:
@@ -524,6 +520,11 @@ def main():
                         weapon_now = shared_state["weapon_on"]
                     print(
                         f"Weapon {'ON' if weapon_now else 'OFF'}")
+                elif key_8bit == ord("s"):
+                    with shared_state_lock:
+                        shared_state["weapon_high_speed"] = not shared_state["weapon_high_speed"]
+                        speed_now = shared_state["weapon_high_speed"]
+                    print(f"Weapon speed {'HIGH (0.75)' if speed_now else 'LOW (0.15)'}")
                 else:
                     with shared_state_lock:
                         if shared_state["paused"]:

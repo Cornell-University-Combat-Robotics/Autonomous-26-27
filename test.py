@@ -110,8 +110,7 @@ else:
 folder = os.getcwd() + "/main_files"
 # Video options (uncomment one for MODE = "video")
 # camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-# camera_number = folder + "/test_videos/huey_vs_prince.mp4"
-camera_number = folder + "/test_videos/shorty_vs_prince.mp4"
+camera_number = folder + os.getenv("TEST VIDEO", "/test_videos/shorty_vs_prince.mp4")
 # camera_number = folder + "/test_videos/huey_hell.mp4"
 # camera_number = folder + "/test_videos/huey_in_n_out.mp4"
 # camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
@@ -190,12 +189,14 @@ def main():
             warped_frame, homography_matrix = make_new_homography(
                 captured_image, selection_scale=DISPLAY_SCALE)
             selected_colors = make_new_colors(
-                folder + "/selected_colors_test.txt", warped_frame)
+                folder + "selected_colors.txt", warped_frame)
         # 3. Or use the previously saved Homography Matrix and colors from the txt file
         else:
+            matrix_path = os.getenv("MATRIX", "/homography_matrix_test.txt")
+            colors_path = os.getenv("COLOR", "/selected_colors_test.txt")
             warped_frame, homography_matrix = read_prev_homography(
-                captured_image, folder + "/homography_matrix_test.txt")
-            selected_colors = read_prev_colors(folder + "/selected_colors_test.txt")
+                captured_image, folder + "/testing_actions_files" + matrix_path)
+            selected_colors = read_prev_colors(folder + "/testing_actions_files" + colors_path)
 
         # Build warp maps from homography matrix for faster warping in the main loop
         map_x, map_y = get_warp_maps(homography_matrix)
@@ -220,8 +221,6 @@ def main():
                 False, speed_motor_channel, turn_motor_channel, weapon_motor_channel)
             # if WEAPON_ON:
             #     weapon_motor_group.move(1)
-
-        # cv2.destroyAllWindows()
 
         # # Initialize algorithm
         # if WARP_AND_COLOR_PICKING:
@@ -370,6 +369,14 @@ def main():
                         corner_detection.set_bots(detected_bots)
                         print("called corner main")
                         detected_bots_with_data, confidence = corner_detection.corner_detection_main(area_threshold, algorithm.huey_previous_orientations, is_flipped=is_flipped, tolerance=15)
+                        if detected_bots_with_data["huey"]:
+                            # Raw orientation may be None when Huey is seen
+                            assert ( detected_bots_with_data["huey"]["center"]  is not None )
+
+                        assert ( algorithm.huey_orientation is not None )
+                        assert ( algorithm.huey_position  is not None )
+                        
+                        # assert ( detected_bots_with_data["huey"]["position"]  is not None)
                         print("Confidence 😤😤😤: ", confidence)
 
                     # Prepare Quantized Huey Image (for display buffer)
