@@ -1,3 +1,6 @@
+# This is used for for Git CI/CD testing. You need to copy any changes to main over to this file to test them.
+
+
 import os
 import time
 import threading
