@@ -43,6 +43,7 @@ def main():
             logger.warning(f"Corner Errored Out with {e}")
 
         if error_example:
+            # This should throw an error and be caught by the main try/except block
             cam = 1 / "hello"
 
     except Exception as e:

@@ -8,6 +8,8 @@ from time import time
 from types import FrameType, ModuleType
 from datetime import datetime
 
+# These values are all relative levels, higher means more important. 
+# For example, if the logger is set to INFO_LEVEL, only info, warnings and errors will be logged, as 20, 30, 40 >= 20.
 ERROR_LEVEL = 40
 WARNING_LEVEL = 30
 INFO_LEVEL = 20
@@ -16,9 +18,10 @@ TRACE_LEVEL = 5
 
 logging.addLevelName(TRACE_LEVEL, "TRACE")
 
-# These should be exposed to config file
+# TODO: These should be exposed to config file
 CONSOLE_LOGGING_LEVEL = DEBUG_LEVEL
 FILE_LOGGING_LEVEL = TRACE_LEVEL
+
 TRACE_MAX_STACK_DEPTH = 1000
 TRACE_REPR_LIMIT = 200
 TRACE_ARRAY_MAX_ELEMENTS = 32
