@@ -1,0 +1,54 @@
+[project]
+name = "autonomous-26-27"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "ethandecamp", email = "decampethanj@gmail.com" }
+]
+requires-python = ">=3.13.12"
+dependencies = [
+    "ruff>=0.16.5",
+]
+
+[project.scripts]
+autonomous-26-27 = "autonomous_26_27:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"      # match the interpreter on the robot
+src = ["services"]
+
+[tool.ruff.lint]
+select = [
+    "F",      # pyflakes
+    "E", "W", # pycodestyle
+    "I",      # import sorting
+    "N",      # pep8-naming
+    "D",      # pydocstyle - enforces the docstring rules below
+    "ANN",    # flake8-annotations - enforces the type rules below
+    "UP",     # pyupgrade
+    "B",      # bugbear
+    "SIM",    # simplify
+    "RUF",    # ruff-specific
+]
+ignore = [
+    "E501",   # line length is the formatter's job
+    "D107",   # missing __init__ docstring; document the class instead
+    "ANN401", # allow typing.Any where it is correct
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["D104", "F401"]
+"tests/**"       = ["D", "ANN"]
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
