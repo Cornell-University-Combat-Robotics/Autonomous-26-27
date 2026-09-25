@@ -1,6 +1,10 @@
 # Autonomous-26-27
 Combat Robotics @ Cornell Autonomous Subteam repository for the 2026-2027 academic year.
 
+Huey NHRL page: <https://www.nhrl.io/wiki/index.php/Huey>
+
+<img src="docs/images/HueyImage.png" alt="Huey Robot Image" width="50%" />
+
 ### uv setup/running
 Install uv
 ```
