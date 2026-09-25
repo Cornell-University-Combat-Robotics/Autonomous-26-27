@@ -23,36 +23,45 @@ jobs:
       QT_QPA_PLATFORM: offscreen
 
     steps:
-
-      # --------------------------------------------------
-      # 1. Download your repository
-      # --------------------------------------------------
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
-        # with:
-        #   # Tell GitHub to download files tracked by Git LFS
-        #   lfs: true
 
-
-      # --------------------------------------------------
-      # 2. Set up Python
-      # --------------------------------------------------
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: "3.13.12"
-          cache: "pip"
-          cache-dependency-path: requirements-ci.txt
+          enable-cache: true
+          python-version: "3.13"
 
-      # --------------------------------------------------
-      # 3. Install Python dependencies
-      # --------------------------------------------------
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-ci.txt
-          pip uninstall -y opencv-python opencv-python-headless
-          pip install opencv-python-headless==4.13.0.92
+
+      # # --------------------------------------------------
+      # # 1. Download your repository
+      # # --------------------------------------------------
+      # - name: Checkout repository
+      #   uses: actions/checkout@v4
+      #   # with:
+      #   #   # Tell GitHub to download files tracked by Git LFS
+      #   #   lfs: true
+
+
+      # # --------------------------------------------------
+      # # 2. Set up Python
+      # # --------------------------------------------------
+      # - name: Set up Python
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: "3.13.12"
+      #     cache: "pip"
+      #     cache-dependency-path: requirements-ci.txt
+
+      # # --------------------------------------------------
+      # # 3. Install Python dependencies
+      # # --------------------------------------------------
+      # - name: Install dependencies
+      #   run: |
+      #     python -m pip install --upgrade pip
+      #     pip install -r requirements-ci.txt
+      #     pip uninstall -y opencv-python opencv-python-headless
+      #     pip install opencv-python-headless==4.13.0.92
 
 
       # --------------------------------------------------
@@ -73,11 +82,11 @@ jobs:
           MATRIX: "/homography_matrix_test.txt"
           COLOR: "/selected_colors_test.txt"
         run: |
-          python test.py
+          uv run --with-requirements requirements-ci.txt python test.py
       - name: Run 2-Corners
         env: 
           TEST_VIDEO: "test_videos/blink224_huey.mp4"
           MATRIX: "/homography_matrix_2corn.txt"
           COLOR: "/selected_colors_2corn.txt"
         run: |
-          python test.py
+          uv run --with-requirements requirements-ci.txt python test.py
