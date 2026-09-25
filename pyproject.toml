@@ -4,11 +4,34 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [
-    { name = "ethandecamp", email = "decampethanj@gmail.com" }
+    { name = "ethandecamp", email = "decampethanj@gmail.com" },
+    { name = "aaronharnish", email = "aaronjharnish@gmail.com" },
+    { name = "tyler-lovejoy", email = "tylerlny9@icloud.com" }
 ]
 requires-python = ">=3.13.12"
 dependencies = [
+    # numpy<=2.3.5 and torch 2.7.x are held back for coremltools 9.0 CoreML export.
+    # numpy 2.4+ breaks YOLO CoreML export; coremltools 9.0 is only tested up to torch 2.7.
+    "coremltools>=9.0,<10 ; sys_platform == 'darwin'",
+    "cv2-enumerate-cameras>=1.3.4",
+    "line-profiler>=5.0.2",
+    "matplotlib>=3.11.2",
+    "numpy==2.3.5",
+    "onnx>=1.23.0",
+    "onnxruntime>=1.30.0",
+    "onnxslim>=0.1.96",
+    "opencv-python>=4.14,<5",
+    "openpyxl>=3.1.5",
+    "openvino>=2026.4.0",
+    "optuna>=4.9,<5",
+    "pandas>=3.0.6",
+    "plotly>=6.9,<7",
+    "pyserial>=3.5",
+    "python-dotenv>=1.2.3",
     "ruff>=0.16.5",
+    "torch>=2.7.1,<2.8",
+    "torchvision>=0.22.1,<0.23",
+    "ultralytics>=8.4.162",
 ]
 
 [project.scripts]
@@ -20,7 +43,7 @@ build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"      # match the interpreter on the robot
+target-version = "py313ß"
 src = ["services"]
 
 [tool.ruff.lint]
