@@ -13,6 +13,19 @@ on:
 
 
 jobs:
+  strip-logs:
+    # --------------------------------------------------
+    # 0. Strip logger.trace statements
+    # --------------------------------------------------
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run sed replacement
+        run: |
+          find . -type f -name "*.py" -exec sed -i '/logger\.trace/d' {} +
+
   video-test:
     name: Run Robotics Subsystem Video Test
 
@@ -23,46 +36,20 @@ jobs:
       QT_QPA_PLATFORM: offscreen
 
     steps:
+      # --------------------------------------------------
+      # 1. Download your repository
+      # --------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # --------------------------------------------------
+      # 2. Set up uv
+      # --------------------------------------------------
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
           python-version: "3.13"
-
-
-      # # --------------------------------------------------
-      # # 1. Download your repository
-      # # --------------------------------------------------
-      # - name: Checkout repository
-      #   uses: actions/checkout@v4
-      #   # with:
-      #   #   # Tell GitHub to download files tracked by Git LFS
-      #   #   lfs: true
-
-
-      # # --------------------------------------------------
-      # # 2. Set up Python
-      # # --------------------------------------------------
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5
-      #   with:
-      #     python-version: "3.13.12"
-      #     cache: "pip"
-      #     cache-dependency-path: requirements-ci.txt
-
-      # # --------------------------------------------------
-      # # 3. Install Python dependencies
-      # # --------------------------------------------------
-      # - name: Install dependencies
-      #   run: |
-      #     python -m pip install --upgrade pip
-      #     pip install -r requirements-ci.txt
-      #     pip uninstall -y opencv-python opencv-python-headless
-      #     pip install opencv-python-headless==4.13.0.92
-
 
       # --------------------------------------------------
       # 4. Verify Git LFS files actually exist
@@ -71,7 +58,6 @@ jobs:
       #   run: |
       #     git lfs ls-files
       #     git lfs pull
-
 
       # --------------------------------------------------
       # 6. Run your actual robotics subsystem
