@@ -1,0 +1,12 @@
+name: Strip logger.trace statements
+
+# When should this workflow run?
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  run: |
+    # For macOS/Linux compatibility in GitHub Actions runners (Ubuntu)
+    find . -type f -name "*.py" -exec sed -i '/logger\.trace/d' {} +
