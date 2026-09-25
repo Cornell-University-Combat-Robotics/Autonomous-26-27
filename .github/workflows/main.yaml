@@ -7,5 +7,12 @@ on:
       - '**'
 
 jobs:
-  run: |
-    find . -type f -name "*.py" -exec sed -i '/logger\.trace/d' {} +
+  strip-logs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run sed replacement
+        run: |
+          find . -type f -name "*.py" -exec sed -i '/logger\.trace/d' {} +
