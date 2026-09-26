@@ -6,17 +6,18 @@ models_folder = "./machine/models/"
 
 # model_name = "SmallComp"
 # model_name = "NanoSizeVariant"
-model_name = "Nano320Temp"
+# model_name = "Nano320Temp"
 # model_name = "NanoSegHueyPrince"
+model_name = "NanoSegAaron"
 
 # Smaller number -> Faster
-desired_model_input_size = 320
+desired_model_input_size = 640
 
 # CoreML for M-series macs, engine for NVIDIA gpus
 # desired_format = "coreml"
 # desired_format = "engine"
-desired_format = "onnx"
-# desired_format = "openvino"
+# desired_format = "onnx"
+desired_format = "openvino"
 
 base_model_extension = ".pt"
 
@@ -25,6 +26,6 @@ model = YOLO(models_folder + model_name + "/" + str(desired_model_input_size) +
              "/" + model_name + base_model_extension, task='detect')
 
 print(model.export(format=desired_format, imgsz=desired_model_input_size,
-      half=True, simplify=True, task='detect'))
+      half=True, simplify=True, task='segment'))
 
 # Terminal prompt: yolo export model=./machine/models/SmallComp/416/SmallComp.pt format=engine simplify=True imgsz=416 half=True

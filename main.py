@@ -43,14 +43,14 @@ MODE = "video"
 # MODE = "custom"
 
 # Core behavior
-WARP_AND_COLOR_PICKING = False
+WARP_AND_COLOR_PICKING = True
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
 BLACKOUT = True
 COLOR_QUANTIZATION = True  # Should almost always stay True
 CAMERA_STREAM = False     # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
-USE_TRACKING = True       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
+USE_TRACKING = False       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
 
 # Logging / debug outputs
@@ -76,8 +76,9 @@ FRAME_RATE = 120
 # Model selection
 # MODEL_NAME = "SmallComp"       # Best accuracy if compute allows
 # MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
-MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
-OD_IMG_SIZE = 320                # Must be multiple of 32, avoid below 320
+# MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
+MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
+OD_IMG_SIZE = 640                # Must be multiple of 32, avoid below 320
 
 if MODE == "comp" or MODE == "live":
     IS_TRANSMITTING = True         # True to send transmissions to live Huey via Arduino    
