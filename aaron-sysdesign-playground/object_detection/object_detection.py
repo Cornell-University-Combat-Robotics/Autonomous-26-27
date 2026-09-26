@@ -24,7 +24,6 @@ class ObjectDetector:
 
     def detect(self, frame: Frame) -> DetectionResult:
         """Run detection on one frame. Reads the Frame, never mutates it."""
-        logger.trace("object_detection: running inference on frame {}", frame.frame_id)
         # Mock inference: always "find" two robots. Real version runs the model
         # on frame.pixels here.
         bots = [

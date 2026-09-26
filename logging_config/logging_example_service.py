@@ -13,4 +13,3 @@ logger = logging.getLogger("example_service")
 def log_service() -> None:
     """Log one INFO record, so the service has something in its log file."""
     logger.info("Service is starting...")
-    logger.trace()
