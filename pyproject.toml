@@ -8,7 +8,25 @@ authors = [
 ]
 requires-python = ">=3.13.12"
 dependencies = [
+    "coremltools>=9.0",
+    "cv2-enumerate-cameras>=1.4.0",
+    "lap>=0.5.13",
+    "line-profiler==5.0.0",
+    "matplotlib==3.10.6",
+    "numpy==2.3.5",
+    "onnxruntime==1.24.2",
+    "opencv-python==4.13.0.92",
+    "openpyxl==3.1.2",
+    "openvino==2026.0",
+    "optuna==4.7.0",
+    "pandas==3.0.1",
+    "plotly>=6.5.2",
+    "pyserial==3.5",
+    "python-dotenv==1.1.1",
     "ruff>=0.16.5",
+    "torch==2.7.0",
+    "torchvision==0.22.0",
+    "ultralytics==8.4.21",
 ]
 
 [project.scripts]

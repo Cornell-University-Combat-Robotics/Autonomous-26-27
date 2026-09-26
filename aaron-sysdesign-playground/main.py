@@ -26,7 +26,7 @@ def main():
     detector = ObjectDetector()
     algorithm = Algorithm()
     logger.debug("main: services constructed")
-    logger.trace("Exiting processUser() successfully.")
+    logger.trace(f"YOU SHOULD NOT BE SEEING ME RN")
 
     # Hot loop: Camera -> ObjectDetector -> Algorithm.
     # Each arrow is one typed dataclass (Frame, then DetectionResult).
