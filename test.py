@@ -52,6 +52,8 @@ CAMERA_STREAM = False   # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
 USE_TRACKING = True       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
+global corner_count
+corner_count = [0,0,0,0,0,0]
 
 # Logging / debug outputs
 SHEET_RUNTIME = False
@@ -108,15 +110,15 @@ else:
 # ------------------------------ CAMERA / VIDEO INPUT ------------------------------
 
 folder = os.getcwd() + "/main_files"
-# Video options (uncomment one for MODE = "video")
-# camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-camera_number = folder + os.getenv("TEST VIDEO", "/test_videos/shorty_vs_prince.mp4")
-# camera_number = folder + "/test_videos/huey_hell.mp4"
-# camera_number = folder + "/test_videos/huey_in_n_out.mp4"
-# camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
-# camera_number = folder + "/test_videos/orbital_huey.mp4"
-# camera_number = folder + "/test_videos/diagona_huey.mp4"
-# camera_number = folder + "/test_videos/huey_backs.mp4"
+# Video options (uncomment one for MODE = "video") 
+# camera_number = folder + "/test_videos/crude_rot_huey.mp4" 
+camera_number = folder + os.getenv("TEST VIDEO", "/test_videos/shorty_vs_prince.mp4") 
+# camera_number = folder + "/test_videos/huey_hell.mp4" 
+# camera_number = folder + "/test_videos/huey_in_n_out.mp4" 
+# camera_number = folder + "/test_videos/cicero_corners_bzone.mov" 
+# camera_number = folder + "/test_videos/orbital_huey.mp4" 
+# camera_number = folder + "/test_videos/diagona_huey.mp4" 
+# camera_number = folder + "/test_videos/huey_backs.mp4" 
 
 # Webcam index (used for MODE = "live" or MODE = "comp")
 # camera_number = 0
@@ -369,6 +371,14 @@ def main():
                         corner_detection.set_bots(detected_bots)
                         print("called corner main")
                         detected_bots_with_data, confidence = corner_detection.corner_detection_main(area_threshold, algorithm.huey_previous_orientations, is_flipped=is_flipped, tolerance=15)
+
+                        num_corners = 0
+                        corner_count[5] += 1
+                        for i in range(len(corner_detection.centroids)):
+                            for p in corner_detection.centroids[i]:
+                                num_corners += 1
+                        corner_count[num_corners] += 1
+
                         if detected_bots_with_data["huey"]:
                             # Raw orientation may be None when Huey is seen
                             assert ( detected_bots_with_data["huey"]["center"]  is not None )
@@ -552,6 +562,10 @@ def main():
             stream.stop()
         print("============================")
         print("Video finished successfully!")
+
+        # Detected Corner Ratios
+        for i in range(len(corner_count)-1):
+            print(f"{i} CORNERS: {corner_count[i]/corner_count[5]:.2f}")
 
         if SHOW_FRAME:
             cv2.destroyAllWindows()
