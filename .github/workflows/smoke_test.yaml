@@ -62,17 +62,17 @@ jobs:
       # --------------------------------------------------
       # 6. Run your actual robotics subsystem
       # --------------------------------------------------
-      - name: Run Huey vs Prince
-        env:
-          TEST_VIDEO: "test_videos/shorty_vs_prince.mp4"
-          MATRIX: "/homography_matrix_test.txt"
-          COLOR: "/selected_colors_test.txt"
-        run: |
-          uv run --with-requirements requirements-ci.txt python test.py
       - name: Run 2-Corners
         env: 
           TEST_VIDEO: "test_videos/blink224_huey.mp4"
           MATRIX: "/homography_matrix_2corn.txt"
           COLOR: "/selected_colors_2corn.txt"
+        run: |
+          uv run --with-requirements requirements-ci.txt python test.py
+      - name: Run Huey vs Prince
+        env:
+          TEST_VIDEO: "test_videos/shorty_vs_prince.mp4"
+          MATRIX: "/homography_matrix_test.txt"
+          COLOR: "/selected_colors_test.txt"
         run: |
           uv run --with-requirements requirements-ci.txt python test.py
