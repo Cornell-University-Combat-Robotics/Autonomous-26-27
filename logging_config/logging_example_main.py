@@ -31,13 +31,10 @@ def main():
                 cam = 1 / 0
 
             # Example Loop
-            logger.trace("Pre Loop")
             corners = 0
             for i in range(10):
                 corners = example_fn(corners)
-                logger.trace("in loop line 31, iteration")
 
-            logger.trace("Exited corner loop")
 
         except Exception as e:
             logger.warning(f"Corner Errored Out with {e}")

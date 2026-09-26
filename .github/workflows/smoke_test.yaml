@@ -26,6 +26,11 @@ jobs:
         run: |
           find . -type f -name "*.py" -exec sed -i '/logger\.trace/d' {} +
 
+      - name: Commit trace-cleaned code back to repository
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "style: strip logger.trace calls [skip ci]"
+
   video-test:
     name: Run Robotics Subsystem Video Test
 
