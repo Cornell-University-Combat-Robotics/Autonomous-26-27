@@ -46,12 +46,13 @@ MODE = "video"
 WARP_AND_COLOR_PICKING = True
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
-BLACKOUT = True
+BLACKOUT = False
 COLOR_QUANTIZATION = True  # Should almost always stay True
 CAMERA_STREAM = False     # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
 USE_TRACKING = False       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
+SEGMENT = True  # Set to True to use segmentation model instead of detection model
 
 # Logging / debug outputs
 SHEET_RUNTIME = True
@@ -203,7 +204,7 @@ def main():
         initialize_quantization()
 
         # Get predictor, if anything goes wrong here, call Aaron #TODO: Document better
-        predictor = get_predictor(MODEL_NAME, OD_IMG_SIZE)
+        predictor = get_predictor(MODEL_NAME, OD_IMG_SIZE, SEGMENT=SEGMENT)
 
         if IMU_ENABLED:
             imu_sensor = IMU_sensor()

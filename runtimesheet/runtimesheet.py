@@ -56,7 +56,7 @@ class RuntimeSheet:
             if self.use:
                 print(f"Saving runtime sheet to {output_name}")
                 # Ensure the output directory exists and prepend it to the output name
-                output_dir = "runtimesheet"
+                output_dir = "runtimesheet/output"
                 os.makedirs(output_dir, exist_ok=True)
                 if not output_name.startswith(output_dir):
                     output_name = os.path.join(output_dir, output_name)
