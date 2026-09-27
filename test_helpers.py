@@ -157,8 +157,8 @@ def first_run(predictor, warped_frame, SHOW_FRAME, corner_detection, selected_co
         print("Initial Corner Detection Output: " + str(first_run_orientation))
         print("Initial Algorithm Output: " + str(first_move_dictionary))
 
-        display_angles(first_run_orientation, first_move_dictionary,
-                       warped_frame, True, centroids=corner_detection.centroids)
+        # display_angles(first_run_orientation, first_move_dictionary,
+        #                warped_frame, True, centroids=corner_detection.centroids)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
     else:
