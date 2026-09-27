@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from collections import deque
+from typing import Tuple
 import logging
 import logging_config.logging_config 
 
@@ -256,7 +257,7 @@ def find_centroids(image: np.ndarray, selected_colors, area_threshold) -> np.nda
 
     return np.array([front_array, back_array], dtype=object), three
 
-def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagonals: list, sides: list, huey_bbox, prev_flipped:int, is_flipped: int) -> (float, bool):
+def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagonals: list, sides: list, huey_bbox, prev_flipped:int, is_flipped: int) -> Tuple[float, bool]:
     """
     Handles orientation calculation when only 2 points are detected by cases.
     Case 1: 2 Front or 2 Back corners are found
