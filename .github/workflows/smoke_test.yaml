@@ -37,8 +37,8 @@ jobs:
     # GitHub's temporary Ubuntu machine
     runs-on: ubuntu-latest
 
-    env:
-      QT_QPA_PLATFORM: offscreen
+    # env:
+    #   QT_QPA_PLATFORM: offscreen
 
     steps:
       # --------------------------------------------------
@@ -74,7 +74,7 @@ jobs:
           COLOR: "/selected_colors_test.txt"
         run: |
           uv run --with-requirements requirements-ci.txt python test.py
-          
+
       - name: Run 2-Corners
         env: 
           TEST_VIDEO: "/test_videos/blink224_huey.mp4"
