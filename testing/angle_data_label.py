@@ -3,6 +3,10 @@ import cv2
 import csv
 import math
 import numpy as np
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 # Settings
 DATA_SET_NAME = "bluey"   # Name of your dataset folder in "testing_data"
@@ -110,7 +114,7 @@ def main():
     ])
 
     if not image_files:
-        print("No images found in folder.")
+        logger.warning("No images found in folder.")
         return
 
     cv2.namedWindow(state["window_name"])
@@ -118,11 +122,11 @@ def main():
 
     for filename in image_files:
         image_path = os.path.join(FOLDER_PATH, filename)
-        print(f"\nProcessing: {image_path}")
+        logger.info(f"\nProcessing: {image_path}")
 
         image = cv2.imread(image_path)
         if image is None:
-            print(f"Failed to load: {image_path}")
+            logger.info(f"Failed to load: {image_path}")
             continue
 
         # Upscale to fit target window size
@@ -147,25 +151,25 @@ def main():
         display = draw_overlay(image, None, None)
         cv2.imshow(state["window_name"], display)
 
-        print(f"Showing: {filename}  |  Click to select angle, ENTER to confirm, S to skip, Q to quit.")
+        logger.info(f"Showing: {filename}  |  Click to select angle, ENTER to confirm, S to skip, Q to quit.")
 
         while True:
             key = cv2.waitKey(50) & 0xFF
 
             if key == 13 or key == 10:  # ENTER key
                 if state["angle"] is not None:
-                    print(f"  -> Saved angle: {state['angle']:.1f} deg")
+                    logger.info(f"  -> Saved angle: {state['angle']:.1f} deg")
                     results.append({"filename": filename, "angle": round(state["angle"], 2)})
                 else:
-                    print("  -> No angle selected; skipping.")
+                    logger.info("  -> No angle selected; skipping.")
                 break
 
             elif key == ord('s'):  # Skip
-                print("  -> Skipped.")
+                logger.info("  -> Skipped.")
                 break
 
             elif key == ord('q'):  # Quit
-                print("Quitting early.")
+                logger.info("Quitting early.")
                 cv2.destroyAllWindows()
                 _write_csv(results)
                 return
@@ -179,7 +183,7 @@ def _write_csv(results):
         writer = csv.DictWriter(f, fieldnames=["filename", "angle"])
         writer.writeheader()
         writer.writerows(results)
-    print(f"\nSaved {len(results)} entries to: {CSV_OUTPUT}")
+    logger.info(f"\nSaved {len(results)} entries to: {CSV_OUTPUT}")
 
 
 if __name__ == "__main__":

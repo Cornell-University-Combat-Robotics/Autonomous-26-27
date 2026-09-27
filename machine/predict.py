@@ -4,6 +4,10 @@ import cv2
 import math
 from dotenv import load_dotenv
 from ultralytics import YOLO
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 # from template_model import TemplateModel # to run in machine
 from machine.template_model import TemplateModel  # to run in main
@@ -174,7 +178,7 @@ class RoboflowModel(TemplateModel):
 
                 x, y, box_width, box_height = pred.x, pred.y, pred.width, pred.height
                 if DEBUG:
-                    print(
+                    logger.debug(
                         f"x: {x}, y: {y}, box_width: {box_width}, box_height: {box_height}"
                     )
 
@@ -259,7 +263,7 @@ class RoboflowModel(TemplateModel):
             cv2.putText(img, "bot", (int(x_min), int(y_min - 10)),
                         FONT, 0.5, color, 2)
 
-        # print(f"Detected [{len(housebots)} housebots], [{len(bots)} bots]")
+        # logger.debug(f"Detected [{len(housebots)} housebots], [{len(bots)} bots]")
 
         # for name, data in predictions.items():
         #     # Extract bounding box coordinates and class details
@@ -299,7 +303,7 @@ class RoboflowModel(TemplateModel):
 # Main code block
 if __name__ == "__main__":
 
-    print("starting testing with PT model")
+    logger.debug("starting testing with PT model")
     # predictor = YoloModel("100epoch11","PT")
     predictor = RoboflowModel()
 
@@ -315,6 +319,6 @@ if __name__ == "__main__":
     bots = predictor.predict(img, show=True)
     end_time = time.time()
     elapsed = end_time - start_time
-    print(f"elapsed time: {elapsed:.4f}")
+    logger.debug(f"elapsed time: {elapsed:.4f}")
 
     # predictor.show_predictions(img, bots)

@@ -5,6 +5,10 @@ import cv2
 import time
 import math
 import pandas as pd
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
@@ -41,8 +45,8 @@ IMAGE_EXTENSIONS = (".png")
 
 first_huey = cv2.imread(FIRST_HUEY_PATH)
 selected_colors = make_new_colors(TESTING_DIR + "/selected_colors.txt", first_huey)
-print("Selected Colors:")
-print(selected_colors)
+logger.info("Selected Colors:")
+logger.info(selected_colors)
 
 corner_detection = RobotCornerDetection(selected_colors, False, False)
 
@@ -75,12 +79,12 @@ def test_detect_corners(threshold, L_weight, RG_weight, BY_weight, area_threshol
                 continue
 
             if DISPLAY_IMAGES:
-                print(f"Processing: {image_path}")
+                logger.info(f"Processing: {image_path}")
             
             image = cv2.imread(image_path)
 
             if image is None:
-                print(f"Failed to load: {image_path}")
+                logger.warning(f"Failed to load: {image_path}")
                 continue
             
             height, width = image.shape[:2]
@@ -119,26 +123,26 @@ def test_detect_corners(threshold, L_weight, RG_weight, BY_weight, area_threshol
                 total_score += math.pow(NO_ORIENTATION_SCORE, 2) # Score increases by arbitrary value
 
             if DISPLAY_IMAGES:
-                print(f"Correct Angle: {angle_lookup.get(filename)}")
-                print(f"Calculated Angle: {detected_bots_with_data[0]['huey']['orientation']}")
+                logger.info(f"Correct Angle: {angle_lookup.get(filename)}")
+                logger.info(f"Calculated Angle: {detected_bots_with_data[0]['huey']['orientation']}")
                 draw_manual_arrow(quantized_img, cx, cy, true_angle)
                 if detected_bots_with_data[0]['huey']['orientation'] != None:
                     draw_orientation_arrow(quantized_img, detected_bots_with_data)
 
                     if true_angle:
-                        print(f"Angle difference: {current_angle_difference}")
+                        logger.info(f"Angle difference: {current_angle_difference}")
                 
                 cv2.imshow("Image Viewer", quantized_img)
-                print(f"Showing: {filename} (quantized)")
+                logger.info(f"Showing: {filename} (quantized)")
 
                 key = cv2.waitKey(0)  # Wait for key press
                 if key == ord('n'):   # Press 'n' to move to next setting
-                    print("--------------------------------")
-                    print(f"Settings: {quant_settings}")
-                    print(f"Frames with orientation: {frames_with_orientation} / {total_frames}")
-                    print(f"Average Theta: {total_theta/max(frames_with_orientation, 1)}")
-                    print(f"Score: {total_score/total_frames}")
-                    print("--------------------------------")
+                    logger.info("--------------------------------")
+                    logger.info(f"Settings: {quant_settings}")
+                    logger.info(f"Frames with orientation: {frames_with_orientation} / {total_frames}")
+                    logger.info(f"Average Theta: {total_theta/max(frames_with_orientation, 1)}")
+                    logger.info(f"Score: {total_score/total_frames}")
+                    logger.info("--------------------------------")
                     return (total_score/total_frames)
     if DISPLAY_IMAGES:
         cv2.destroyAllWindows()
@@ -146,7 +150,7 @@ def test_detect_corners(threshold, L_weight, RG_weight, BY_weight, area_threshol
     return (total_score/total_frames) # Return average score
 
 if __name__ == "__main__":
-    print("PRESS 0 TO SWITCH IMAGES AND N TO ITERATE QUANTIZATION SETTINGS")
+    logger.info("PRESS 0 TO SWITCH IMAGES AND N TO ITERATE QUANTIZATION SETTINGS")
 
     orientation_scores = {}
 
@@ -156,4 +160,4 @@ if __name__ == "__main__":
     for i in range(20, 4, -2):
         orientation_scores[i] = test_detect_corners(25, 0.1, 1.0, 1.0, area_threshold=i)
 
-    print(str(orientation_scores))
+    logger.info(str(orientation_scores))

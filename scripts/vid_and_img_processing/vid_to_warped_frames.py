@@ -2,6 +2,10 @@ import cv2
 import os
 import numpy as np
 from warp_main import get_homography_mat
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 # def get_homography_mat(frame, output_w, output_h):
 #     corners = []
@@ -10,7 +14,7 @@ from warp_main import get_homography_mat
 #         if event == cv2.EVENT_LBUTTONDOWN:
 #             # Left button clicked, store the point
 #             corners.append([x, y])
-#             print(f"Point added: {x}, {y}")
+#             logger.info(f"Point added: {x}, {y}")
 #             draw_corners()  # Redraw the points on the image
 
 #     def draw_corners():
@@ -35,13 +39,13 @@ from warp_main import get_homography_mat
 #         if key == ord('z'):  # If 'z' is pressed
 #             if len(corners) > 0:
 #                 removed_point = corners.pop()  # Remove the last point
-#                 print(f"Point removed: {removed_point}")
+#                 logger.info(f"Point removed: {removed_point}")
 #                 draw_corners()  # Redraw the image with remaining points
 #             else:
-#                 print("No points to remove.")
+#                 logger.info("No points to remove.")
 #         key = cv2.waitKey(1) & 0xFF
 
-#     print("Final Selected Points:", corners)
+#     logger.info("Final Selected Points:", corners)
 #     dest_pts = [[0, 0], [output_w, 0], [output_w, output_h], [0, output_h]]
 #     matrix, _ = cv2.findHomography(np.array(corners), np.array(dest_pts))
 #     cv2.destroyAllWindows()
@@ -52,13 +56,13 @@ def process_video(video_path, output_w=700, output_h=700, target_fps=5):
     # open the video
     cap = cv2.VideoCapture(video_path)
     if not cap.isOpened():
-        print("Error opening video file")
+        logger.warning("Error opening video file")
         return
 
     ret, frame = cap.read()
     # ret: True if cap.read() successfully reads a frame, False otherwise
     if not ret:
-        print("Error opening video frame")
+        logger.warning("Error opening video frame")
         return
 
     # frame = cv2.resize(frame, (output_w, output_h), interpolation=cv2.INTER_NEAREST)
@@ -79,7 +83,7 @@ def process_video(video_path, output_w=700, output_h=700, target_fps=5):
     os.makedirs(output_img_folder_dir, exist_ok=True)
 
     num_saved_imgs = 0
-    print("Starting processing")
+    logger.info("Starting processing")
     while ret:
         if frame_counter % coeff == 0:
             # frame = cv2.resize(frame, (output_w, output_h), interpolation=cv2.INTER_AREA)
@@ -93,8 +97,8 @@ def process_video(video_path, output_w=700, output_h=700, target_fps=5):
         ret, frame = cap.read()
         frame_counter += 1
 
-    print("Processing finished")
-    print(f"Total saved images: {num_saved_imgs}")
+    logger.info("Processing finished")
+    logger.debug(f"Total saved images: {num_saved_imgs}")
 
 
 if __name__ == "__main__":

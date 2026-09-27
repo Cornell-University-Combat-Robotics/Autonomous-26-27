@@ -32,6 +32,10 @@ from warp_main import get_warp_maps
 from warp_main import warp_map
 from sensors.imu_class import IMU_sensor
 from sensors.imu_class import IMUReadError
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 # ------------------------------ GLOBAL SETTINGS ------------------------------
 # Keep one option active per setting. Commented lines directly below are common alternatives.
@@ -236,10 +240,10 @@ def main():
         # 8. Match begins
         if CAMERA_STREAM:
             if stream.isOpened() == False:
-                print("Error opening video file" + "\n")
+                logger.warning("Error opening video file" + "\n")
         else:
             if cap.isOpened() == False:
-                print("Error opening video file" + "\n")
+                logger.warning("Error opening video file" + "\n")
 
         # ----------------------------------------------------------------------
         # Define the Perception Pipeline (Runs in Background Thread)
@@ -298,7 +302,7 @@ def main():
                             ret, frame = cap.read()
 
                         if not ret:
-                            print("Failed to capture image" + "\n")
+                            logger.warning("Failed to capture image" + "\n")
                             break
 
                     # Get inputs from Shared State
@@ -316,11 +320,11 @@ def main():
                             with shared_state_lock:
                                 shared_state["flipped"] = is_flipped == -1
                         except IMUReadError as ex:
-                            print(f"🟥 Error reading IMU flip state, using manual flip: {ex}")
+                            logger.warning(f"🟥 Error reading IMU flip state, using manual flip: {ex}")
                         except KeyError as ex:
-                            print(f"🟥 Error reading IMU flip state, using manual flip: {ex}")
+                            logger.warning(f"🟥 Error reading IMU flip state, using manual flip: {ex}")
                         except Exception as ex:
-                            print(f"🟥 Error reading IMU flip state, using manual flip: {ex}")
+                            logger.warning(f"🟥 Error reading IMU flip state, using manual flip: {ex}")
                     else:
                         is_flipped = manual_is_flipped
 
@@ -332,7 +336,7 @@ def main():
                         try:
                             cali_yaw = imu_sensor.get_yaw_uncali()
                             curr_sensor_val = cali_yaw
-                            print(f"Total sensor value: {total_sensor_val}")
+                            logger.info(f"Total sensor value: {total_sensor_val}")
                             if prev_sensor_val == curr_sensor_val:
                                 total_sensor_val += 1
                             else:
@@ -341,15 +345,15 @@ def main():
                             prev_sensor_val = curr_sensor_val
 
                         except IMUReadError as ex:
-                            # print(f"🟥 Error: {ex}") xd rawr
+                            # logger.warning(f"🟥 Error: {ex}") xd rawr
                             pass
                         except KeyError as ex:
-                            # print(f"🟥 Error: {ex}")
+                            # logger.warning(f"🟥 Error: {ex}")
                             pass
                         except KeyboardInterrupt as e:
                             raise(e)
                         except Exception as e:
-                            print(f"error from imu: {e}")
+                            logger.warning(f"error from imu: {e}")
                             pass
 
                     # 11. Run the Warped Image through Object Detection
@@ -366,7 +370,7 @@ def main():
                     # 12. Run Object Detection's results through Corner Detection
                     with rs.log_timing("Corner Detection"):
                         corner_detection.set_bots(detected_bots)
-                        # print("called corner main")
+                        # logger.info("called corner main")
                         detected_bots_with_data, confidence = corner_detection.corner_detection_main(area_threshold, algorithm.huey_previous_orientations, is_flipped=is_flipped, tolerance=15)
 
                     # Prepare Quantized Huey Image (for display buffer)
@@ -387,41 +391,41 @@ def main():
 
                     if IMU_ENABLED:
                         try:
-                            # print("detected bots with data: ", detected_bots_with_data)
+                            # logger.info("detected bots with data: ", detected_bots_with_data)
                             
                             # if detected_bots_with_data.get("huey") is not None and detected_bots_with_data.get("huey") != {}:
-                            # print(q)
+                            # logger.info(q)
                             if total_sensor_val <= 400: 
                                 if detected_bots_with_data and detected_bots_with_data.get("huey"):
-                                    print(f"DETECTED BOTS WITH DATA {detected_bots_with_data.get('huey')}")
+                                    logger.info(f"DETECTED BOTS WITH DATA {detected_bots_with_data.get('huey')}")
                                     if (detected_bots_with_data.get("huey").get("orientation") is not None) and confidence:
-                                        #print(f"before cali yaw: {cali_yaw} and {detected_bots_with_data.get("huey").get("orientation")}")
+                                        #logger.info(f"before cali yaw: {cali_yaw} and {detected_bots_with_data.get("huey").get("orientation")}")
                                         imu_sensor.calibrate_yaw(detected_bots_with_data.get("huey").get("orientation"), cali_yaw)
-                                        print("CALLIBRATING")
+                                        logger.info("CALLIBRATING")
                                         yaw = 0
                                     if (detected_bots_with_data.get("huey")) and (corner_detection.corner_method < 2 or corner_detection.is_diagonal):
-                                        print(f"USING SENSORS USING SENSORS USING SENSORS")
+                                        logger.info(f"USING SENSORS USING SENSORS USING SENSORS")
                                         yaw = imu_sensor.get_yaw_continuous()
                                         detected_bots_with_data["huey"]["orientation"] = yaw
-                                        print(f"yaw = {yaw}")
+                                        logger.info(f"yaw = {yaw}")
                                         draw_yaw_text(warped_frame,yaw,is_flipped)
                             # is_flipped = imu_sensor.get_upside_down_continuous()
-                            print(f"flipped = {is_flipped}")
-                            # print("detected bots with data: ", detected_bots_with_data)
+                            logger.info(f"flipped = {is_flipped}")
+                            # logger.info("detected bots with data: ", detected_bots_with_data)
             
                             # draw_yaw_text(warped_frame,yaw,is_flipped)
                         except IMUReadError as ex:
-                            print(f"🟥 Error: {ex}")
-                            print(" 🟢 using cd orientation 🟢 ")
+                            logger.warning(f"🟥 Error: {ex}")
+                            logger.warning(" 🟢 using cd orientation 🟢 ")
                             pass
                         except KeyError as ex:
-                            print(f"🟥 Error: {ex}")
+                            logger.warning(f"🟥 Error: {ex}")
                             pass
                         except Exception as ex:
-                            print("🦅 WTF is Happening 🦅")
+                            logger.warning("🦅 WTF is Happening 🦅")
                             template = "An exception of type {0} occurred. Arguments:\n{1!r}"
                             message = template.format(type(ex).__name__, ex.args)
-                            print(message)
+                            logger.warning(message)
                             raise(ex)        
 
                     with rs.log_timing("Algorithm"):
@@ -499,7 +503,7 @@ def main():
                 if key_8bit == ord("q"):
                     stop_event.set()
                 elif key_8bit == ord("f"):
-                    print("Backup flipped key pressed")
+                    logger.info("Backup flipped key pressed")
                     with shared_state_lock:
                         if shared_state["flipped"] is None:
                             shared_state["flipped"] = True
@@ -512,19 +516,19 @@ def main():
                         shared_state["paused"] = not shared_state["paused"]
                         shared_state["skip_frame"] = False
                         paused_now = shared_state["paused"]
-                    print(
+                    logger.info(
                         f"Playback {'paused' if paused_now else 'resumed'}")
                 elif key_8bit == ord("w"):
                     with shared_state_lock:
                         shared_state["weapon_on"] = not shared_state["weapon_on"]
                         weapon_now = shared_state["weapon_on"]
-                    print(
+                    logger.info(
                         f"Weapon {'ON' if weapon_now else 'OFF'}")
                 elif key_8bit == ord("s"):
                     with shared_state_lock:
                         shared_state["weapon_high_speed"] = not shared_state["weapon_high_speed"]
                         speed_now = shared_state["weapon_high_speed"]
-                    print(f"Weapon speed {'HIGH (0.75)' if speed_now else 'LOW (0.15)'}")
+                    logger.info(f"Weapon speed {'HIGH (0.75)' if speed_now else 'LOW (0.15)'}")
                 else:
                     with shared_state_lock:
                         if shared_state["paused"]:
@@ -544,8 +548,8 @@ def main():
 
         if CAMERA_STREAM:
             stream.stop()
-        print("============================")
-        print("Video finished successfully!")
+        logger.info("============================")
+        logger.info("Video finished successfully!")
 
         if SHOW_FRAME:
             cv2.destroyAllWindows()
@@ -556,9 +560,9 @@ def main():
                     pass
 
     except KeyboardInterrupt:
-        print("KEYBOARD INTERRUPT CLEAN UP")
+        logger.warning("KEYBOARD INTERRUPT CLEAN UP")
     except Exception as exception:
-        print("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:", exception)
+        logger.warning("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:", exception)
     finally:
 
         # Newbie squadron trial
@@ -567,7 +571,7 @@ def main():
             color_df.to_csv("color_output.csv", index=True)
             # color_percentages_graphing.makeGraph()
         except Exception as color_exception:
-            print("Data collection failed:", color_exception)
+            logger.warning("Data collection failed:", color_exception)
 
         if IS_TRANSMITTING:  # Motors need to be cleaned up correctly
             try:
@@ -578,7 +582,7 @@ def main():
                 if 'ser' in locals():
                     ser.cleanup()
             except Exception as motor_exception:
-                print("Motor cleanup failed:", motor_exception)
+                logger.warning("Motor cleanup failed:", motor_exception)
 
         if CAMERA_STREAM:
             if stream:

@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 import os
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 class ColorPicker:
     """
@@ -23,7 +27,7 @@ class ColorPicker:
             if image is None:
                 raise FileNotFoundError(f"Image not found: {image}")
         except Exception as e:
-            print(f"Error loading image: {e}")
+            logger.warning(f"Error loading image: {e}")
             return []
 
         selected_colors = []
@@ -32,7 +36,7 @@ class ColorPicker:
         def click_event(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 if x < 0 or y < 0 or x >= image.shape[1] or y >= image.shape[0]:
-                    print(f"Clicked outside the image: ({x}, {y})")
+                    logger.info(f"Clicked outside the image: ({x}, {y})")
                     return
 
                 try:
@@ -41,11 +45,11 @@ class ColorPicker:
                     if len(selected_colors) < 4:
                         selected_colors.append(hsv_color)
                         points.append([x, y])
-                        print(f"Selected color (HSV): {hsv_color}")
-                        print(f"Point added: {x}, {y}")
+                        logger.info(f"Selected color (HSV): {hsv_color}")
+                        logger.info(f"Point added: {x}, {y}")
                         redraw_image()
                 except Exception as e:
-                    print(f"Error processing color at ({x}, {y}): {e}")
+                    logger.warning(f"Error processing color at ({x}, {y}): {e}")
 
         def redraw_image():
             img_copy = image.copy()
@@ -81,19 +85,19 @@ class ColorPicker:
                 if selected_colors and points:
                     removed_color = selected_colors.pop()
                     removed_point = points.pop()
-                    print(f"🛑 Color removed: {removed_color}")
-                    print(f"🛑 Point removed: {removed_point}")
+                    logger.info(f"🛑 Color removed: {removed_color}")
+                    logger.info(f"🛑 Point removed: {removed_point}")
                     redraw_image()
                 else:
-                    print("⚠ No points to remove.")
+                    logger.info("⚠ No points to remove.")
             elif key == 27:  # Press 'Esc' to exit without saving
-                print("❌ Selection canceled. Exiting...")
+                logger.info("❌ Selection canceled. Exiting...")
                 selected_colors = []
                 return None
             elif len(selected_colors) == 4:
                 selected_colors = selected_colors[:len(selected_colors)-1]
-                print("🎨 Final Selected Colors (HSV):", selected_colors)
-                print("📌 Final Selected Points:", points)
+                logger.info("🎨 Final Selected Colors (HSV):", selected_colors)
+                logger.info("📌 Final Selected Points:", points)
                 break
 
         cv2.destroyAllWindows()
@@ -111,11 +115,11 @@ def save_colors_to_file(colors, output_file):
         with open(output_file, "w") as file:
             for color in colors:
                 file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-        print(f"Selected colors have been saved to '{output_file}'.")
+        logger.info(f"Selected colors have been saved to '{output_file}'.")
     except FileNotFoundError:
-        print(f"Error: Output file path '{output_file}' does not exist.")
+        logger.warning(f"Error: Output file path '{output_file}' does not exist.")
     except Exception as e:
-        print(f"Error saving colors to file: {e}")
+        logger.warning(f"Error saving colors to file: {e}")
 
 def display_colors(selected_colors):
     """
@@ -125,7 +129,7 @@ def display_colors(selected_colors):
         selected_colors (list): List of HSV colors.
     """
     if not selected_colors:
-        print("No colors selected to display.")
+        logger.info("No colors selected to display.")
         return
     
     try:
@@ -155,7 +159,7 @@ def display_colors(selected_colors):
         cv2.destroyAllWindows()
 
     except Exception as e:
-        print(f"Error displaying colors: {e}")
+        logger.warning(f"Error displaying colors: {e}")
 
 if __name__ == "__main__":
     image_path = os.getcwd() + "/warped_images/east.png"
@@ -163,7 +167,7 @@ if __name__ == "__main__":
 
     # Validating the image path
     if not os.path.exists(image_path):
-        print(f"Image file does not exist at path: {image_path}")
+        logger.warning(f"Image file does not exist at path: {image_path}")
     else:
         try:
             img = cv2.imread(image_path)
@@ -172,4 +176,4 @@ if __name__ == "__main__":
                 save_colors_to_file(selected_colors, output_file)
                 display_colors(selected_colors)
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
+            logger.warning(f"An unexpected error occurred: {e}")

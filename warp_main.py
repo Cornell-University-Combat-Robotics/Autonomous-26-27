@@ -26,6 +26,10 @@ folder = os.getcwd() + "/main_files"
 import numpy as np
 import cv2
 import os
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 def get_homography_mat(frame, display_scale=1.0):
     corners = []
@@ -47,11 +51,11 @@ def get_homography_mat(frame, display_scale=1.0):
             orig_y = int(y / display_scale)
 
             if orig_x < outer_padding or orig_y < outer_padding or orig_x >= padded_frame.shape[1] - outer_padding or orig_y >= padded_frame.shape[0] - outer_padding:       
-                print(f"Clicked outside valid area: ({orig_x}, {orig_y})")
+                logger.info(f"Clicked outside valid area: ({orig_x}, {orig_y})")
                 return
 
             corners.append([orig_x - outer_padding, orig_y - outer_padding])  # Save coords relative to original frame
-            print(f"Point added: {orig_x - outer_padding}, {orig_y - outer_padding}")
+            logger.info(f"Point added: {orig_x - outer_padding}, {orig_y - outer_padding}")
             draw_corners()
 
     def draw_corners():
@@ -74,13 +78,13 @@ def get_homography_mat(frame, display_scale=1.0):
         if key == ord('z'):
             if corners:
                 removed = corners.pop()
-                print(f"Point removed: {removed}")
+                logger.info(f"Point removed: {removed}")
                 draw_corners()
             else:
-                print("No points to remove.")
+                logger.info("No points to remove.")
         key = cv2.waitKey(1) & 0xFF
 
-    print("Final Selected Points:", corners)
+    logger.info("Final Selected Points:", corners)
     dest_pts = [[0, 0], [ARENA_WIDTH, 0], [ARENA_WIDTH, ARENA_WIDTH], [0, ARENA_WIDTH]]
     matrix, _ = cv2.findHomography(np.array(corners), np.array(dest_pts))
     cv2.destroyAllWindows()
@@ -100,7 +104,7 @@ def get_homography_mat(frame, display_scale=1.0):
     with open(output_file, "w") as file:
         for row in matrix:
             file.write(", ".join(map(str, row)) + "\n")
-    print(f"Homography matrix has been saved to '{output_file}'.")
+    logger.info(f"Homography matrix has been saved to '{output_file}'.")
 
     return matrix
 
@@ -134,7 +138,7 @@ As a change from the original warp, does NOT resize the input image.
 def warp(frame, h_mat):
 
     # DEPRECATED: Use warp_map with precomputed maps instead for better performance if doing multiple warps with the same homography
-    print("WARNING: Using warp() which is significantly slower than warp_map() with precomputed maps. Consider using get_warp_maps() and warp_map() for better performance if warping multiple frames with the same homography.")
+    logger.warning("WARNING: Using warp() which is significantly slower than warp_map() with precomputed maps. Consider using get_warp_maps() and warp_map() for better performance if warping multiple frames with the same homography.")
 
     if torch.cuda.is_available():
         gpu_frame = cv2.UMat(frame)

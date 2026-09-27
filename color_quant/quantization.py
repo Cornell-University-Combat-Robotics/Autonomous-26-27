@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 from corner_detection.color_picker import ColorPicker
 import time
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 """
     Takes in BGR image, converts to Lab, then snaps colors to color picker, 
@@ -126,7 +130,7 @@ if __name__ == "__main__":
     colors_hsv = np.array(color_picker.pick_colors(img), dtype=np.uint8)
 
     if colors_hsv.size == 0:
-        print("No colors selected, exiting.")
+        logger.warning("No colors selected, exiting.")
         exit(0)
 
     # Convert picked HSV colors to BGR
@@ -144,7 +148,7 @@ if __name__ == "__main__":
         show=True
     )
     total_time_ms = (time.time() - start_time) * 1000.0
-    print(f"Total quantize_robot_colors call (outer): {total_time_ms:.3f} ms")
+    logger.info(f"Total quantize_robot_colors call (outer): {total_time_ms:.3f} ms")
 
     cv2.imshow("Original Image", img)
     cv2.imshow("Quantized Image", out_img)

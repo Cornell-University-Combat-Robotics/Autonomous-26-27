@@ -2,19 +2,23 @@ import cv2
 import threading
 import time
 import platform
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 
 class CameraStream:
     def __init__(self, src):
         # Use CAP_DSHOW if on Windows, if on Mac use AVFoundation, otherwise use default
         if platform.system() == "Windows":
-            # print("Using DSHOW for Windows")
+            # logger.info("Using DSHOW for Windows")
             # self.cap = cv2.VideoCapture(src, cv2.CAP_DSHOW)
-            print(
+            logger.info(
                 "Temporarily using default backend for Windows (not DSHOW) due to issues.")
             self.cap = cv2.VideoCapture(src)
         elif platform.system() == "Darwin":
-            print("Using AVFoundation for Mac")
+            logger.info("Using AVFoundation for Mac")
             self.cap = cv2.VideoCapture(src, cv2.CAP_AVFOUNDATION)
         else:
             self.cap = cv2.VideoCapture(src)
@@ -43,10 +47,10 @@ class CameraStream:
         self.frame_count = 0
         self.stopped = False
 
-        # Print FPS, frame width, frame height of self.cap object
-        print(f"Capture FPS: {self.cap.get(cv2.CAP_PROP_FPS)}")
-        print(f"Capture Frame Width: {self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)}")
-        print(
+        # Log FPS, frame width, frame height of self.cap object
+        logger.info(f"Capture FPS: {self.cap.get(cv2.CAP_PROP_FPS)}")
+        logger.info(f"Capture Frame Width: {self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)}")
+        logger.info(
             f"Capture Frame Height: {self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)}")
 
     def start(self):
@@ -89,7 +93,7 @@ if __name__ == "__main__":
 
     cam = CameraStream(src=camera_number).start()
 
-    print("Camera Stream Started. Press 'q' to quit.")
+    logger.info("Camera Stream Started. Press 'q' to quit.")
 
     try:
         while True:
@@ -107,10 +111,10 @@ if __name__ == "__main__":
                 break
 
     except Exception as e:
-        print(f"UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP: {e}")
+        logger.info(f"UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP: {e}")
 
     finally:
         # 4. Clean up resources
-        print("Cleaning up...")
+        logger.info("Cleaning up...")
         cam.stop()
         cv2.destroyAllWindows()
