@@ -24,7 +24,10 @@ jobs:
 
       - name: Run sed replacement
         run: |
-          find . -type f -name "*.py" -exec sed -i '/logger\.trace/d' {} +
+          find . -type f -name "*.py" \
+            -not -path "./logging_config/*" \
+            -not -path "./aaron-sysdesign-playground/*" \
+            -exec sed -i '/logger\.trace/d' {} +
 
       - name: Commit trace-cleaned code back to repository
         uses: stefanzweifel/git-auto-commit-action@v5
