@@ -175,9 +175,7 @@ def main():
             captured_image = key_frame(
                 stream, CAMERA_STREAM)
         else:
-            print("THIS IS THE BEST PRINT OF ALL TIME.     1")
             cap = cv2.VideoCapture(camera_number)
-            print("THIS IS THE BEST PRINT OF ALL TIME.     2")
 
             if camera_type == "Webcam":
                 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
@@ -196,24 +194,20 @@ def main():
                 folder + "selected_colors.txt", warped_frame)
         # 3. Or use the previously saved Homography Matrix and colors from the txt file
         else:
-            print("THIS IS THE BEST PRINT OF ALL TIME.     3")
             matrix_path = os.getenv("MATRIX", "/homography_matrix_2corn.txt")
             colors_path = os.getenv("COLOR", "/selected_colors_2corn.txt")
             warped_frame, homography_matrix = read_prev_homography(
                 captured_image, folder + "/testing_actions_files" + matrix_path)
             selected_colors = read_prev_colors(folder + "/testing_actions_files" + colors_path)
-            print("THIS IS THE BEST PRINT OF ALL TIME.     4")
 
         # Build warp maps from homography matrix for faster warping in the main loop
         map_x, map_y = get_warp_maps(homography_matrix)
 
         # Initialize color quantization cv2
         initialize_quantization()
-        print("THIS IS THE BEST PRINT OF ALL TIME.     5")
 
         # Get predictor, if anything goes wrong here, call Aaron #TODO: Document better
         predictor = get_predictor(MODEL_NAME, OD_IMG_SIZE)
-        print("THIS IS THE BEST PRINT OF ALL TIME.     6")
 
         if IMU_ENABLED:
             imu_sensor = IMU_sensor()
@@ -222,7 +216,6 @@ def main():
 
         # Initialize corner detection
         corner_detection = RobotCornerDetection(selected_colors, False, False, BLACKOUT=BLACKOUT, thresh=0.4, frame_rate = FRAME_RATE)
-        print("THIS IS THE BEST PRINT OF ALL TIME.     7")
 
         # Initialize transmission TODO: Figure out whether we need weapon_motor_group and JANK_CONTROLLER
         if IS_TRANSMITTING:
@@ -239,7 +232,6 @@ def main():
         #     algorithm = Ram()
 
         algorithm = first_run(predictor, warped_frame, SHOW_FRAME, corner_detection, selected_colors, area_threshold)
-        print("THIS IS THE BEST PRINT OF ALL TIME.     8")
 
         ### TODO: call dynamic threshold here
 
