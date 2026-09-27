@@ -24,7 +24,6 @@ class Camera:
     def read(self) -> Frame:
         """Capture and return the next frame. Called once per loop iteration."""
         # Mock capture: a blank image. Real version pulls from hardware here.
-        logger.trace("camera: generating blank pixel array")
         pixels = np.zeros((self._height, self._width))
 
         frame = Frame(pixels=pixels, frame_id=self._frames_captured)
