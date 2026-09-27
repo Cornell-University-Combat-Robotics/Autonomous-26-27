@@ -194,8 +194,8 @@ def main():
                 folder + "selected_colors.txt", warped_frame)
         # 3. Or use the previously saved Homography Matrix and colors from the txt file
         else:
-            matrix_path = os.getenv("MATRIX", "/homography_matrix_2corn.txt")
-            colors_path = os.getenv("COLOR", "/selected_colors_2corn.txt")
+            matrix_path = os.getenv("MATRIX", "/homography_matrix_test.txt")
+            colors_path = os.getenv("COLOR", "/selected_colors_test.txt")
             warped_frame, homography_matrix = read_prev_homography(
                 captured_image, folder + "/testing_actions_files" + matrix_path)
             selected_colors = read_prev_colors(folder + "/testing_actions_files" + colors_path)
