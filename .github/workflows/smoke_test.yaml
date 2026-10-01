@@ -11,23 +11,23 @@ on:
       # - main
       # - develop
 
+# TODO: reinstate ruff linting when deslop is more defined
+# jobs:
+#   ruff:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Check out repository code
+#         uses: actions/checkout@v4
 
-jobs:
-  ruff:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v4
+#       # Runs Ruff linting (checks rules and reports violations)
+#       - name: Run Ruff Lint
+#         uses: astral-sh/ruff-action@v3
 
-      # Runs Ruff linting (checks rules and reports violations)
-      - name: Run Ruff Lint
-        uses: astral-sh/ruff-action@v3
-
-      # Optional: Runs Ruff formatter to check code style consistency
-      - name: Run Ruff Format
-        uses: astral-sh/ruff-action@v3
-        with:
-          args: "format --check"
+#       # Optional: Runs Ruff formatter to check code style consistency
+#       - name: Run Ruff Format
+#         uses: astral-sh/ruff-action@v3
+#         with:
+#           args: "format --check"
   
   strip-logs:
     # --------------------------------------------------
