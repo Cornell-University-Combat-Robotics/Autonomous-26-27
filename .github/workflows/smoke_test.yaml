@@ -21,11 +21,11 @@ jobs:
 
       # Runs Ruff linting (checks rules and reports violations)
       - name: Run Ruff Lint
-        uses: astral-sh/ruff-action@v4
+        uses: astral-sh/ruff-action@v3
 
       # Optional: Runs Ruff formatter to check code style consistency
       - name: Run Ruff Format
-        uses: astral-sh/ruff-action@v4
+        uses: astral-sh/ruff-action@v3
         with:
           args: "format --check"
   
