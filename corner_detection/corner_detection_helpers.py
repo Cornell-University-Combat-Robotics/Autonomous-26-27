@@ -479,25 +479,6 @@ def get_missing_point(points: list) -> list:
         return [[], []]
 
 @staticmethod
-def compute_tangent_angle(p1: tuple, p2: tuple) -> float: #NOTE: does not compute tangent angle anymore
-    """
-    Computes the angle of the tangent line to the front of the robot.
-
-    Args:
-        p1 (tuple): The first front point (x1, y1).
-        p2 (tuple): The second front point (x2, y2).
-
-    Returns: float: The angle of the tangent line relative to the x-axis in degrees.
-    """
-    x1, y1 = p1
-    x2, y2 = p2
-    dx = x2 - x1
-    dy = -(y2 - y1)
-    angle_rad = np.arctan2(dy, dx)
-    tangent_angle_rad = angle_rad + np.pi / 2
-    return math.degrees(tangent_angle_rad) % 360
-
-@staticmethod
 def compute_angle_between_midpoints(p1: tuple, p2: tuple) -> float:
     """
     Computes the angle of the line between the front and back corners of robot.
@@ -514,23 +495,6 @@ def compute_angle_between_midpoints(p1: tuple, p2: tuple) -> float:
     dy = -(y2 - y1)
     angle_rad = np.arctan2(dy, dx)
     return math.degrees(angle_rad) % 360
-
-def display_image(image: np.ndarray, left_front: list, right_front: list):
-    left_x, left_y = int(left_front[0]), int(left_front[1])
-    right_x, right_y = int(right_front[0]), int(right_front[1])
-
-    # Draw the left front corner
-    cv2.circle(image, left_x, left_y, 5, (255, 255, 255), -1,)
-    cv2.putText(image, "Left Front", left_x, left_y - 30, FONT, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
-
-    # Draw the right front corner
-    cv2.circle(image, right_x, right_y, 5, (255, 255, 255), -1)
-    cv2.putText(image, "Right Front", right_x, right_y, - 30, FONT, 0.5, (0, 0, 255), 1, cv2.LINE_AA)
-
-    # Display the image
-    cv2.imshow("Image with Left and Right Front Corners", image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
 
 def norm_from_bbox(bbox):
     """

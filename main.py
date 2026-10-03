@@ -20,7 +20,6 @@ from main_helpers import (
     get_motor_groups,
     get_predictor,
     key_frame,
-    make_new_colors,
     make_new_homography,
     read_prev_colors,
     read_prev_homography,
@@ -28,6 +27,7 @@ from main_helpers import (
     quantize,
     draw_yaw_text
 )
+from corner_detection.color_picker import ColorPicker
 from warp_main import get_warp_maps
 from warp_main import warp_map
 from sensors.imu_class import IMU_sensor
@@ -191,7 +191,7 @@ def main():
         if WARP_AND_COLOR_PICKING:
             warped_frame, homography_matrix = make_new_homography(
                 captured_image, selection_scale=DISPLAY_SCALE)
-            selected_colors = make_new_colors(
+            selected_colors = ColorPicker.make_new_colors(
                 folder + "/selected_colors.txt", warped_frame)
         # 3. Or use the previously saved Homography Matrix and colors from the txt file
         else:

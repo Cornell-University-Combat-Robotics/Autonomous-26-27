@@ -103,23 +103,28 @@ class ColorPicker:
         cv2.destroyAllWindows()
         return selected_colors
 
-def save_colors_to_file(colors, output_file):
-    """
-    Saves the selected colors to a text file in HSV format.
+    def save_colors_to_file(self, colors, output_file):
+        """
+        Saves the selected colors to a text file in HSV format.
 
-    Args:
-        colors (list): List of HSV colors to be saved.
-        output_file (str): Path to the output file.
-    """
-    try:
-        with open(output_file, "w") as file:
-            for color in colors:
-                file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-        logger.info(f"Selected colors have been saved to '{output_file}'.")
-    except FileNotFoundError:
-        logger.warning(f"Error: Output file path '{output_file}' does not exist.")
-    except Exception as e:
-        logger.warning(f"Error saving colors to file: {e}")
+        Args:
+            colors (list): List of HSV colors to be saved.
+            output_file (str): Path to the output file.
+        """
+        try:
+            with open(output_file, "w") as file:
+                for color in colors:
+                    file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+            logger.info(f"Selected colors have been saved to '{output_file}'.")
+        except FileNotFoundError:
+            logger.warning(f"Error: Output file path '{output_file}' does not exist.")
+        except Exception as e:
+            logger.warning(f"Error saving colors to file: {e}")
+
+    def make_new_colors(self, output_file_path, warped_frame):
+        selected_colors = self.pick_colors(warped_frame)
+        self.save_colors_to_file(selected_colors, output_file_path)
+        return selected_colors
 
 def display_colors(selected_colors):
     """
@@ -160,20 +165,3 @@ def display_colors(selected_colors):
 
     except Exception as e:
         logger.warning(f"Error displaying colors: {e}")
-
-if __name__ == "__main__":
-    image_path = os.getcwd() + "/warped_images/east.png"
-    output_file = "selected_colors.txt"
-
-    # Validating the image path
-    if not os.path.exists(image_path):
-        logger.warning(f"Image file does not exist at path: {image_path}")
-    else:
-        try:
-            img = cv2.imread(image_path)
-            selected_colors = ColorPicker.pick_colors(img)
-            if selected_colors:
-                save_colors_to_file(selected_colors, output_file)
-                display_colors(selected_colors)
-        except Exception as e:
-            logger.warning(f"An unexpected error occurred: {e}")

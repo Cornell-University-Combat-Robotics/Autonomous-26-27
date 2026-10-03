@@ -7,7 +7,6 @@ import torch
 import openvino as ov
 
 from algorithm.ram import Ram
-from corner_detection.color_picker import ColorPicker
 from machine.predict import YoloModel
 from transmission.motors import Motor
 from transmission.serial_conn import OurSerial
@@ -98,15 +97,6 @@ def read_prev_colors(file_path):
         logger.warning(f"Error reading selected_colors.txt: {e}" + "\n")
         exit(1)
     return selected_colors
-
-
-def make_new_colors(output_file_path, warped_frame):
-    selected_colors = ColorPicker.pick_colors(warped_frame)
-    with open(output_file_path, "w") as file:
-        for color in selected_colors:
-            file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-    return selected_colors
-
 
 def get_predictor(MODEL_NAME, OD_IMG_SIZE):
     if torch.cuda.is_available():
