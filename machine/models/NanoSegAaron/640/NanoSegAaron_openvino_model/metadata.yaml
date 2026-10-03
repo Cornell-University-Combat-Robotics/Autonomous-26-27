@@ -1,0 +1,24 @@
+description: Ultralytics YOLO26n-seg model trained on /content/NHRL-Sampled-Segmentation-9/data.yaml
+author: Ultralytics
+date: '2026-09-26T11:33:48.897483'
+version: 8.4.21
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 32
+task: segment
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: battlebot
+  1: housebot
+args:
+  batch: 1
+  fraction: 1.0
+  half: true
+  int8: false
+  dynamic: false
+  nms: false
+channels: 3
+end2end: true

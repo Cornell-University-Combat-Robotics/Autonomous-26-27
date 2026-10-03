@@ -225,5 +225,8 @@ __marimo__/
 # DS Store
 .DS_Store
 
+# Ignore output of runtimesheet
+runtimesheet/output/*
+
 # Algorithm test files
 algorithm/RamRamTest/*
