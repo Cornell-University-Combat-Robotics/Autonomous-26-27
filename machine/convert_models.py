@@ -24,7 +24,7 @@ base_model_extension = ".pt"
 
 # Load the YOLO model
 model = YOLO(models_folder + model_name + "/" + str(desired_model_input_size) +
-             "/" + model_name + base_model_extension, task='detect')
+             "/" + model_name + base_model_extension, task=desired_task)
 
 print(model.export(format=desired_format, imgsz=desired_model_input_size,
       half=True, simplify=True, task='segment'))
