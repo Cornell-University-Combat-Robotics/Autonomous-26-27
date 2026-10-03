@@ -13,13 +13,15 @@ from transmission.motors import Motor
 from transmission.serial_conn import OurSerial
 from warp_main import get_homography_mat, warp
 from color_quant.quantization import quantize_robot_colors
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 """
 Gets first frame of the video and returns it. If frame can't be read or video isn't being 
 processed will print the problem, and return captured_image as none. 
 """
-
-
 def key_frame(stream, CAMERA_STREAM):
     captured_image = None
 
@@ -157,8 +159,8 @@ def first_run(predictor, warped_frame, SHOW_FRAME, corner_detection, selected_co
         print("Initial Corner Detection Output: " + str(first_run_orientation))
         print("Initial Algorithm Output: " + str(first_move_dictionary))
 
-        display_angles(first_run_orientation, first_move_dictionary,
-                       warped_frame, True, centroids=corner_detection.centroids)
+        # display_angles(first_run_orientation, first_move_dictionary,
+        #                warped_frame, True, centroids=corner_detection.centroids)
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
     else:

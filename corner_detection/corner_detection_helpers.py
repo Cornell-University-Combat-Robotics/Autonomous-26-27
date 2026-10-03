@@ -4,6 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from collections import deque
+from typing import Tuple
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 MIN_THRESHOLD = 0.08
@@ -76,7 +81,7 @@ def find_our_bot(self, images: list[np.ndarray], bot_color_hsv, threshold_set=Tr
 
         for image in images: # this for loop handles whether the image is the huey bot
             if image is None:
-                print("Warning: One of the images is None, skipping...")
+                logger.info("Warning: One of the images is None, skipping...")
                 continue
             
             color_pixel_count = find_bot_color_pixels(image, bot_color_hsv)
@@ -101,23 +106,23 @@ def find_our_bot(self, images: list[np.ndarray], bot_color_hsv, threshold_set=Tr
         return our_bot_image
     
     except Exception as e:
-        print(f"Unexpected error occurred in find_our_bot: {e}")
+        logger.warning(f"Unexpected error occurred in find_our_bot: {e}")
         return None
 
 def dynamic_threshold(self, threshold_set, bot_color_percentages):
     # Case 1: Setting the initial threshold 
     if not threshold_set:
-        print("case 1")
+        logger.debug("case 1")
         # Case 1.1: If we see 2 or more robots
         if len(bot_color_percentages) > 1 and bot_color_percentages[-1] > 0:
             huey_color_percentage = bot_color_percentages[-1]
             enemy_color_percentage = bot_color_percentages[-2]
             self.huey_color_percentage_threshold = max((huey_color_percentage + enemy_color_percentage) / 2, MIN_THRESHOLD)
-            print("Initial Threshold (2+ robots): " + str(self.huey_color_percentage_threshold))
+            logger.debug("Initial Threshold (2+ robots): " + str(self.huey_color_percentage_threshold))
         # Case 1.2: If we see only 1 robot. We use the static threshold because that robot could be us or not
         else:
             self.huey_color_percentage_threshold = MIN_THRESHOLD
-            print("Initial Threshold (1 robot): " + str(self.huey_color_percentage_threshold))
+            logger.debug("Initial Threshold (1 robot): " + str(self.huey_color_percentage_threshold))
     
     # Case 2: Updating threshold and running sum using queue
     elif threshold_set and len(bot_color_percentages) >= 2:
@@ -197,15 +202,15 @@ def find_centroids_per_color(side: str, image: np.ndarray, hsv_image: np.ndarray
     # 4. Sort the entire list
     sorted_contours = sorted(contours, key=sorting_criteria)
     sorted_contours = [c for c in sorted_contours if cv2.contourArea(c) >= CORNER_THRESHOLD]
-    # print(f"🧏‍♂️ sorted areas: {[cv2.contourArea(c) for c in sorted_contours]}")
-    # print(f"🧏‍♂️ sorted percentages: {[(cv2.contourArea(c)/(img_h * img_w)) for c in sorted_contours]}")
-    # print(f"🚔🚔image area: {img_h * img_w}")
+    # logger.debug(f"🧏‍♂️ sorted areas: {[cv2.contourArea(c) for c in sorted_contours]}")
+    # logger.debug(f"🧏‍♂️ sorted percentages: {[(cv2.contourArea(c)/(img_h * img_w)) for c in sorted_contours]}")
+    # logger.debug(f"🚔🚔image area: {img_h * img_w}")
 
     # 5. Extract top 2 centroids
     centroids = []
     for contour in sorted_contours:
         area = cv2.contourArea(contour)
-        print("Area", area)
+        logger.debug("Area", area)
         if area > area_threshold:
             if len(centroids) >= 2:
                 break
@@ -252,7 +257,7 @@ def find_centroids(image: np.ndarray, selected_colors, area_threshold) -> np.nda
 
     return np.array([front_array, back_array], dtype=object), three
 
-def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagonals: list, sides: list, huey_bbox, prev_flipped:int, is_flipped: int) -> (float, bool):
+def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagonals: list, sides: list, huey_bbox, prev_flipped:int, is_flipped: int) -> Tuple[float, bool]:
     """
     Handles orientation calculation when only 2 points are detected by cases.
     Case 1: 2 Front or 2 Back corners are found
@@ -320,14 +325,14 @@ def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagon
         
         # CASE 2.1: Both corners are on the same side
         if (corner_distance < cutoff):
-            # print(f"🌫️🌫️🌫️🌫️🌫️CORNERS ON SAME SIDE: {angle} degrees")
+            # logger.debug(f"🌫️🌫️🌫️🌫️🌫️CORNERS ON SAME SIDE: {angle} degrees")
             return angle, True
         
         # CASE 2.2: The corners are diagonal
         else:
             
             if not IS_VALID_ORIE: # take midorie
-                print(f"💀MIDORIE")
+                logger.debug(f"💀MIDORIE")
                 length = front_points[0][1] - back_points[0][1] # front[0][1] should be y coords,
                 width = front_points[0][0] - back_points[0][0]
                 hypotenuse = math.sqrt(math.pow(length, 2) + math.pow(width, 2))
@@ -336,7 +341,7 @@ def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagon
             else: 
                 p1 = (angle + 45) % 360
                 p2 = (angle - 45) % 360
-                print(f"🌈🌈🌈CORNERS ON DIFFERENT SIDE: {p1} or {p2} degrees🌈🌈🌈")
+                logger.debug(f"🌈🌈🌈CORNERS ON DIFFERENT SIDE: {p1} or {p2} degrees🌈🌈🌈")
                 return pick_closest_angle(p1, p2, previous_orientation), False
 
     raise ValueError(f"Invalid point configuration: Front={len(front_points)}, Back={len(back_points)}")
@@ -470,7 +475,7 @@ def get_missing_point(points: list) -> list:
         return [red_points, blue_points]
     
     except Exception as e:
-        print(f"Unexpected error in get_missing_point: {e}")
+        logger.warning(f"Unexpected error in get_missing_point: {e}")
         return [[], []]
 
 @staticmethod
@@ -577,7 +582,7 @@ def compute_blackout_box(image, huey_bbox, enemy_bbox, thresh = BLACKOUT_THRESHO
     
     # Check on whether we should blackout at all
     if int_area > huey_area * thresh:
-        print("BLACKOUT IS HIGHER THAN 40%")
+        logger.info("BLACKOUT IS HIGHER THAN 40%")
         return image, True
 
     # Arena to bbox cords

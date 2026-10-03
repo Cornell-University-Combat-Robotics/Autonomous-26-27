@@ -1,4 +1,8 @@
 import cv2
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 def get_available_cameras():
     available_cameras = []
@@ -12,6 +16,6 @@ def get_available_cameras():
 
 cameras = get_available_cameras()
 if cameras:
-    print("Available Cameras:", cameras)
+    logger.info("Available Cameras:", cameras)
 else:
-    print("No cameras found.")
+    logger.info("No cameras found.")

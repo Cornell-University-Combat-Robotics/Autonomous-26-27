@@ -1,25 +1,29 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from corner_detection.corner_detection import RobotCornerDetection
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 def makeGraph():  
     # Read the CSV file
     df = pd.read_csv("color_output.csv", index_col = 0)
     #df = pd.read_csv("ColorPercentageData.csv")
 
-    # Print diagnostic information
+    # Log diagnostic information
 
-    print("Column names:", df.columns.tolist())
-    print(f"Data shape: {df.shape[0]} rows, {df.shape[1]} columns")
-    print("\nFirst 10 rows:")
-    print(df.head(10))
-    print("\nData statistics:")
-    print(df.describe())
-    print("\nAny null values?")
-    print(df.isnull().sum())
-    print("\nMin and max values per column:")
-    print(f"Huey: min={df.iloc[:,0].min()}, max={df.iloc[:,0].max()}")
-    print(f"Enemy: min={df.iloc[:,1].min()}, max={df.iloc[:,1].max()}")
+    logger.debug("Column names:", df.columns.tolist())
+    logger.debug(f"Data shape: {df.shape[0]} rows, {df.shape[1]} columns")
+    logger.debug("\nFirst 10 rows:")
+    logger.debug(df.head(10))
+    logger.debug("\nData statistics:")
+    logger.debug(df.describe())
+    logger.debug("\nAny null values?")
+    logger.debug(df.isnull().sum())
+    logger.debug("\nMin and max values per column:")
+    logger.debug(f"Huey: min={df.iloc[:,0].min()}, max={df.iloc[:,0].max()}")
+    logger.debug(f"Enemy: min={df.iloc[:,1].min()}, max={df.iloc[:,1].max()}")
     # Create figure and axis
     fig, ax = plt.subplots(figsize=(12, 6))
 
@@ -69,6 +73,6 @@ def makeGraph():
     # Display the plot
     plt.show()
 
-    print(f"\nGraph created successfully!")
+    logger.info(f"\nGraph created successfully!")
 
 makeGraph()

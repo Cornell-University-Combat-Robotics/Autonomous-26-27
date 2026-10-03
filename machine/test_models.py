@@ -3,13 +3,17 @@ import numpy as np
 import time
 from predict import YoloModel 
 from predict import RoboflowModel
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 def test_model(method,model_name,model_type, device = None, img = '12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg'):
     if method == 'YoloModel':
-        print('starting testing with PT model')
+        logger.info('starting testing with PT model')
         predictor = YoloModel(model_name, model_type, device)
     elif method == 'RoboflowModel':
-        print('starting testing with Roboflow model')
+        logger.info('starting testing with Roboflow model')
         predictor = RoboflowModel()
 
     img = cv2.imread(img)
@@ -22,10 +26,10 @@ def test_model(method,model_name,model_type, device = None, img = '12567_png.rf.
         predictor.predict(img, show=False)
         end_time = time.time()
         elapsed = end_time - start_time
-        #print(f'elapsed time: {elapsed:.4f}')
+        #logger.debug(f'elapsed time: {elapsed:.4f}')
         data[i] = elapsed
         # predictor.show_predictions(img, bots)
-    print([data])
+    logger.debug([data])
     return data
 
 if __name__ == "__main__":
@@ -76,4 +80,4 @@ if __name__ == "__main__":
             file.write('\n')
 
     else:
-        print("you suck and messed up")
+        logger.error("you suck and messed up")

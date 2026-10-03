@@ -5,6 +5,10 @@ import numpy as np
 import os
 import sys
 from ultralytics import YOLO
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 # Add the project root to sys.path to allow imports
 # This assumes segment.py is in the root directory 'Autonomous-25-26'
@@ -24,36 +28,36 @@ def main():
 
     # --- Model Loading ---
     if not os.path.exists(MODEL_PATH):
-        print(f"Error: Model file not found at {MODEL_PATH}")
-        print(
+        logger.warning(f"Error: Model file not found at {MODEL_PATH}")
+        logger.info(
             f"Please download a YOLO segmentation model (e.g., yolov8n-seg.pt) and place it in machine/models/ as {MODEL_NAME}")
         return
 
-    print(f"Loading model from {MODEL_PATH}...")
+    logger.info(f"Loading model from {MODEL_PATH}...")
     model = YOLO(MODEL_PATH, task='segment')
-    print("Model loaded.")
+    logger.info("Model loaded.")
 
     # --- Video Input & Homography ---
     cap = cv2.VideoCapture(VIDEO_PATH)
     if not cap.isOpened():
-        print(f"Error: Could not open video file {VIDEO_PATH}")
+        logger.info(f"Error: Could not open video file {VIDEO_PATH}")
         return
 
-    print("\nPlease select a frame for homography by pressing '0'.")
+    logger.info("\nPlease select a frame for homography by pressing '0'.")
     initial_frame = key_frame(cap, False, selection_scale=1.0)
     if initial_frame is None:
-        print("No frame selected. Exiting.")
+        logger.info("No frame selected. Exiting.")
         cap.release()
         cv2.destroyAllWindows()
         return
 
-    print("\nSelect the 4 arena corners for the homography matrix.")
+    logger.info("\nSelect the 4 arena corners for the homography matrix.")
     # make_new_homography returns the warped frame and the matrix
     _, homography_matrix = make_new_homography(
         initial_frame, selection_scale=1.0)
 
     if homography_matrix is None:
-        print("Homography matrix generation failed. Exiting.")
+        logger.warning("Homography matrix generation failed. Exiting.")
         cap.release()
         cv2.destroyAllWindows()
         return
@@ -62,13 +66,13 @@ def main():
     map_x, map_y = get_warp_maps(homography_matrix)
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    print("\nStarting video playback with instance segmentation. Press 'q' to quit.")
+    logger.info("\nStarting video playback with instance segmentation. Press 'q' to quit.")
 
     # --- Main Loop ---
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
-            print("End of video.")
+            logger.info("End of video.")
             break
 
         # 1. Warp the frame
@@ -89,7 +93,7 @@ def main():
     # --- Cleanup ---
     cap.release()
     cv2.destroyAllWindows()
-    print("Playback finished.")
+    logger.info("Playback finished.")
 
 
 if __name__ == "__main__":

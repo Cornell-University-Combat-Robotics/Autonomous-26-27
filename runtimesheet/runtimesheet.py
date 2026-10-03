@@ -3,6 +3,10 @@ import time
 import pandas as pd
 import matplotlib.pyplot as plt
 from contextlib import contextmanager
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 
 class RuntimeSheet:
@@ -54,7 +58,7 @@ class RuntimeSheet:
     def save(self, output_name):
         try:
             if self.use:
-                print(f"Saving runtime sheet to {output_name}")
+                logger.info(f"Saving runtime sheet to {output_name}")
                 # Ensure the output directory exists and prepend it to the output name
                 output_dir = "runtimesheet/output"
                 os.makedirs(output_dir, exist_ok=True)
@@ -152,10 +156,10 @@ class RuntimeSheet:
                         fig_stack.write_html(output_name + "_interactive_stacked.html")
 
                     except ImportError:
-                        print(
+                        logger.warning(
                             "\n[Note] Plotly not found. For interactive HTML graphs, run: pip install plotly")
                         
                 else:
                     plt.close()
         except KeyError:
-            print("RuntimeSheet failed due to KeyError")
+            logger.error("RuntimeSheet failed due to KeyError")

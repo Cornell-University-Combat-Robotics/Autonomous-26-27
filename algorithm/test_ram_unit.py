@@ -2,6 +2,10 @@ import unittest
 from algorithm.ram import Ram
 import numpy as np
 import time
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 algo = Ram()
 
@@ -273,13 +277,13 @@ class TestRam(unittest.TestCase):
         self.assertAlmostEqual(values['right'], 0.9999999999994331111111111111111111111111111111111111111111111111111111111/2, places = 2)
 
         bots3 = {'huey': {'bb': [199.21307092309192, 397.12606428385743, 20, 20], 'center': [209.21307092309192, 407.12606428385743], 'orientation': 90}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [510, 220]}}
-        print("Test: Enemy doesn't move")
+        logger.info("Test: Enemy doesn't move")
         values = algo.ram_ram(bots3)
         self.assertAlmostEqual(values['left'],0.5, places =3)
         self.assertAlmostEqual(values['right'],0.1771477778, places =3)
 
         # enemy is currently in danger zone -- use enemy current position
-        print("Test: Enemy is in the Danger Zone")
+        logger.info("Test: Enemy is in the Danger Zone")
         bots4 = {'huey': {'bb': [99.13626817533684, 582.1403853383393, 20, 20], 'center': [109.13626817533684, 592.1403853383393], 'orientation': 325.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [120, 540]}}
         values = algo.ram_ram(bots4)
         # 
@@ -287,7 +291,7 @@ class TestRam(unittest.TestCase):
         self.assertAlmostEqual(values['right'], 0.4996944444, places =3)
         
         # if future position is our position
-        print("Test: Future position is current position")
+        logger.info("Test: Future position is current position")
         bots5 = {'huey': {'bb': [99, 582., 20, 20], 'center': [185, 410], 'orientation': 325.0}, 'enemy': {'bb': [500, 210, 20, 20], 'center': [152.5, 475]}}
         values = algo.ram_ram(bots5)
         self.assertAlmostEqual(values['left'], 0.5, places=3)

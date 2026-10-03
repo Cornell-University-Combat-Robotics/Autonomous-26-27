@@ -2,6 +2,10 @@ import os
 import cv2
 import numpy as np
 from .corner_detection_helpers import find_our_bot, find_centroids, compute_angle_between_midpoints, two_corners, math, deque, calc_diagonal_and_side_length, compute_blackout_box, is_overlap, dynamic_threshold
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 class RobotCornerDetection:
     """
@@ -74,10 +78,10 @@ class RobotCornerDetection:
                             resized_img = cv2.resize(img, (window_width, window_height))
                             cv2.imshow(f"Bot Image {i + 1}", resized_img)
                         except cv2.error as e:
-                            print(f"Error resizing or displaying image {i + 1}: {e}")
+                            logger.warning(f"Error resizing or displaying image {i + 1}: {e}")
                             continue
                     else:
-                        print(f"Image {i + 1} is None")
+                        logger.info(f"Image {i + 1} is None")
                 
                 cv2.waitKey(0)
                 cv2.destroyAllWindows()
@@ -88,15 +92,15 @@ class RobotCornerDetection:
 
                 return our_bot
             else:
-                # print("No valid bot images found.")
+                # logger.warning("No valid bot images found.")
                 return None
         
         except Exception as e:
-            print(f"Unexpected error in detect_our_robot_main: {e}")
+            logger.warning(f"Unexpected error in detect_our_robot_main: {e}")
             return None
     
     def four_good(self, tolerance=5): 
-        print("entered four good")
+        logger.info("entered four good")
         for j in range(0, 2):
             for i in range(0,2):
                 same_color_side = self.centroids[j][(i+1)%2] - self.centroids[j][i] 
@@ -114,7 +118,7 @@ class RobotCornerDetection:
 
                 angle = np.acos(np.dot(same_color_side, other_color_side)/(mag_same*mag_opp))*180/math.pi
 
-                print("Angle 📐📐📐: \n", angle)
+                logger.debug("Angle 📐📐📐: \n", angle)
                 if (90 + tolerance < angle or 90 - tolerance > angle):
                     return 0
         return 1
@@ -123,7 +127,7 @@ class RobotCornerDetection:
         """
         Returns 1 if the two corners weren't diagonal and 0 otherwise.
         """
-        print("entered non diag good")
+        logger.debug("entered non diag good")
 
         if (len(self.centroids[0]) == 2 or len(self.centroids[1]) == 2) and (is_flipped == -1):
             return 0
@@ -131,7 +135,7 @@ class RobotCornerDetection:
             return int(is_not_diagonal)
     
     def confidence(self, corners, is_not_diagonal, high_overlap, is_flipped, tolerance=15):
-        print("entered conf")
+        logger.debug("entered conf")
         if high_overlap:
             return 0
         elif (corners == 4 or corners == 3) and self.four_good(tolerance):
@@ -214,8 +218,8 @@ class RobotCornerDetection:
                             huey["orientation"] = calc_orientation
                         self.prev_flipped = is_flipped
 
-                        # print(f"PREV ORIENT: 🌸🐋💛 {previous_orientation}")
-                        # print(f"Current ORIENT: 💛🐋🌸 { huey["orientation"]}")
+                        # logger.debug(f"PREV ORIENT: 🌸🐋💛 {previous_orientation}")
+                        # logger.(f"Current ORIENT: 💛🐋🌸 { huey["orientation"]}")
                     else:
                         huey["orientation"] = None
                     conf = self.confidence(self.corner_method, IS_NOT_DIAGONAL, high_overlap, is_flipped, tolerance)
@@ -223,12 +227,12 @@ class RobotCornerDetection:
 
                 elif (len(centroid_points[0]) + len(centroid_points[1]) < 2):
 
-                    print("Less than 2 corners found")
+                    logger.debug("Less than 2 corners found")
                     self.is_diagonal = False
                     conf = 0
                     return {"huey": huey, "enemy": enemy_bots}, conf
                 
-                print("FOURNER4️⃣")
+                logger.debug("FOURNER4️⃣")
                 if not self.corner_method == 3:
                     self.corner_method = 4
 
@@ -241,12 +245,12 @@ class RobotCornerDetection:
                 conf = self.confidence(self.corner_method, IS_NOT_DIAGONAL, high_overlap, is_flipped, tolerance)
                 return result, conf
             else:
-                # print("Image doesn't exist")
+                # logger.debug("Image doesn't exist")
                 conf = 0
                 return {"huey": {}, "enemy": {}}, conf
 
         except Exception as e:
-            print(f"Unexpected error in corner_detection_main: {e}")
+            logger.warning(f"Unexpected error in corner_detection_main: {e}")
             conf = 0
             return None, conf
 
@@ -266,7 +270,7 @@ if __name__ == "__main__":
             raise ValueError(f"Failed to load image at path: {not_huey_image_path}")
     
     except Exception as e:
-        print(f"Error loading images: {e}")
+        logger.warning(f"Error loading images: {e}")
         exit(1)
 
     housebot = {"bbox": [[0, 0], [1, 1]], "img": not_huey_image}
@@ -288,7 +292,7 @@ if __name__ == "__main__":
             raise ValueError("The file must contain exactly 3 HSV values.")
     
     except Exception as e:
-        print(f"Error reading selected_colors.txt: {e}")
+        logger.warning(f"Error reading selected_colors.txt: {e}")
         exit(1)
 
         filename = 'area.csv'
@@ -297,4 +301,4 @@ if __name__ == "__main__":
     corner_detection = RobotCornerDetection(selected_colors, True, False)
     corner_detection.set_bots(all_bots)
     result = corner_detection.corner_detection_main()
-    print("result: " + str(result))
+    logger.debug("result: " + str(result))

@@ -5,6 +5,10 @@ import math
 import serial.tools.list_ports
 import threading    
 from concurrent.futures import ThreadPoolExecutor
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 class IMUReadError(Exception):
     """Base exception for IMU serial read issues"""
@@ -46,7 +50,7 @@ class IMU_sensor():
         Allows user to determine what port the esp32 is on
 
         User Guide: 
-        1. Look at port list printed by choose_port
+        1. Look at port list logged by choose_port
         2. unplug esp32 and press '0' to refresh list
         3. Look to see which port is missing
         4. replug esp32 and refresh port list
@@ -59,21 +63,21 @@ class IMU_sensor():
             available_ports = serial.tools.list_ports.comports()
             port_dic = {}
             if len(available_ports) == 0:
-                print("No ports found")
+                logger.info("No ports found")
             else:
-                print("Choose a port for the SENSORS/ESP from the options below:")
+                logger.info("Choose a port for the SENSORS/ESP from the options below:")
                 for i in range(len(available_ports)):
                     port = available_ports[i]
                     port_dic[str(i+1)] = port.device
-                    print(str(i+1) + ":", port)
-            print("Choose 0 to refresh your options")
+                    logger.info(str(i+1) + ":", port)
+            logger.info("Choose 0 to refresh your options")
 
             selection = input("Enter your selection here: ")
             return [selection, port_dic]
 
         def check_validity(selection):
             while selection != "0" and selection not in port_dic:
-                print("Selection invalid. Choose one of the following or 0 to refresh options:",
+                logger.info("Selection invalid. Choose one of the following or 0 to refresh options:",
                       list(port_dic.keys()))
                 selection = input("Enter your selection here: ")
             return selection
@@ -108,7 +112,7 @@ class IMU_sensor():
         def update_dict():
             while True:
                 try:
-                    # print(f"error count: {self.errorCounter}")
+                    # logger.debug(f"error count: {self.errorCounter}")
                     json_string = self.ser.readline().decode('utf-8').strip()
                     new_dict = json.loads(json_string)
                     with self.dict_lock:
@@ -117,15 +121,15 @@ class IMU_sensor():
                         self.errorCounter = 0
                         self.goodTime = time.time()
                 except UnicodeDecodeError as e:
-                    # print("IMU error: " + str(e))
+                    # logger.warning("IMU error: " + str(e))
                     with self.error_lock:
                         self.errorCounter += 1
-                        # print(f"time since good: {time.time()-self.goodTime}")
+                        # logger.debug(f"time since good: {time.time()-self.goodTime}")
                 except json.decoder.JSONDecodeError as e:
-                    # print("JSON error: " + str(e))
+                    # logger.warning("JSON error: " + str(e))
                     with self.error_lock:
                         self.errorCounter += 1
-                        # print(f"time since good: {time.time()-self.goodTime}")
+                        # logger.debug(f"time since good: {time.time()-self.goodTime}")
         thread = threading.Thread(target=update_dict, daemon=True)
         thread.start()
         
@@ -149,7 +153,7 @@ class IMU_sensor():
         self.yaw = (yaw / math.pi) * 180
         if self.yaw < 0:
             self.yaw += 360
-            print(f"UNCALIBRATED YAW: {self.yaw}")
+            logger.debug(f"UNCALIBRATED YAW: {self.yaw}")
         return self.yaw
     
     def get_yaw_continuous(self):
@@ -161,10 +165,10 @@ class IMU_sensor():
         self.yaw = (yaw / math.pi) * 180
         if self.yaw < 0:
             self.yaw += 360
-            # print(f"UNCALIBRATED YAW: {self.yaw}")
+            # logger.debug(f"UNCALIBRATED YAW: {self.yaw}")
         with self.cali_lock:
             self.yaw = (self.yaw - self.cali_angle) % 360
-            # print(f"CALIBRATED YAW: {self.yaw}")
+            # logger.debug(f"CALIBRATED YAW: {self.yaw}")
         return self.yaw
 
     def get_field_continuous(self, field, subfield):

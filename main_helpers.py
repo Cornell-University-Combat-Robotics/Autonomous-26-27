@@ -13,17 +13,19 @@ from transmission.motors import Motor
 from transmission.serial_conn import OurSerial
 from warp_main import get_homography_mat, warp
 from color_quant.quantization import quantize_robot_colors
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 """
 Gets first frame of the video and returns it. If frame can't be read or video isn't being 
-processed will print the problem, and return captured_image as none. 
+processed will log the problem, and return captured_image as none. 
 """
-
-
 def key_frame(stream, CAMERA_STREAM, selection_scale=1.0):
     captured_image = None
     if stream == None:
-        print("Error opening camera stream" + "\n")
+        logger.warning("Error opening camera stream" + "\n")
 
     while (CAMERA_STREAM and stream.isOpened() and not stream.stopped) or stream.isOpened():
         ret, frame = stream.read()
@@ -44,7 +46,7 @@ def key_frame(stream, CAMERA_STREAM, selection_scale=1.0):
                 return captured_image
             time.sleep(0.02)
         else:
-            print("Failed to read frame" + "\n")
+            logger.warning("Failed to read frame" + "\n")
             return captured_image
     cv2.destroyAllWindows()
     return captured_image
@@ -63,7 +65,7 @@ def read_prev_homography(captured_image, file_path):
         homography_matrix = np.array(
             homography_matrix, dtype=np.float32)
     except Exception as e:
-        print(f"Error reading homography_matrix.txt: {e}" + "\n")
+        logger.warning(f"Error reading homography_matrix.txt: {e}" + "\n")
         exit(1)
 
     warped_frame = warp(captured_image, homography_matrix)
@@ -72,7 +74,7 @@ def read_prev_homography(captured_image, file_path):
 
 def make_new_homography(captured_image, selection_scale=1.0):
     if captured_image is None:
-        print("No image captured. Press '0' to capture image.")
+        logger.warning("No image captured. Press '0' to capture image.")
         return
 
     homography_matrix = get_homography_mat(
@@ -93,7 +95,7 @@ def read_prev_colors(file_path):
         if len(selected_colors) != 3:
             raise ValueError("The file must contain exactly 3 HSV values.")
     except Exception as e:
-        print(f"Error reading selected_colors.txt: {e}" + "\n")
+        logger.warning(f"Error reading selected_colors.txt: {e}" + "\n")
         exit(1)
     return selected_colors
 
@@ -107,29 +109,29 @@ def make_new_colors(output_file_path, warped_frame):
 
 def get_predictor(MODEL_NAME, OD_IMG_SIZE, SEGMENT=False):
     if torch.cuda.is_available():
-        print(f"Using {MODEL_NAME} on CUDA for object detection.")
+        logger.info(f"Using {MODEL_NAME} on CUDA for object detection.")
         predictor = YoloModel(MODEL_NAME, "TensorRT",
                             OD_IMG_SIZE, device="cuda", SEGMENT=SEGMENT)
 
     elif torch.backends.mps.is_available():
-        print(f"Using {MODEL_NAME} with CoreML for object detection.")
+        logger.info(f"Using {MODEL_NAME} with CoreML for object detection.")
         predictor = YoloModel(MODEL_NAME, "CoreML", OD_IMG_SIZE, SEGMENT=SEGMENT)
 
     # CoreML is better for all Macs i'm pretty sure
     # elif torch.backends.mps.is_available():
-    #     print(f"Using {MODEL_NAME} on MPS for object detection.")
+    #     logger.info(f"Using {MODEL_NAME} on MPS for object detection.")
     #     predictor = YoloModel(MODEL_NAME, "PT", OD_IMG_SIZE, device="mps")
 
     elif ov.Core().get_available_devices() and "GPU" in ov.Core().get_available_devices():
-        print(f"Using {MODEL_NAME} with OpenVINO on GPU for object detection.")
+        logger.info(f"Using {MODEL_NAME} with OpenVINO on GPU for object detection.")
         predictor = YoloModel(MODEL_NAME, "OpenVINO", OD_IMG_SIZE, device="intel:gpu", SEGMENT=SEGMENT)
 
     elif ov.Core().get_available_devices() and "CPU" in ov.Core().get_available_devices():
-        print(f"Using {MODEL_NAME} with OpenVINO on CPU for object detection.")
-        predictor = YoloModel(MODEL_NAME, "OpenVINO", OD_IMG_SIZE, device="intel:cpu", SEGMENT=SEGMENT)
+        logger.info(f"Using {MODEL_NAME} with OpenVINO on CPU for object detection.")
+        predictor = YoloModel(MODEL_NAME, "OpenVINO", OD_IMG_SIZE, device="cpu")
 
     else:
-        print(f"Using {MODEL_NAME} with ONNX on CPU for object detection.")
+        logger.info(f"Using {MODEL_NAME} with ONNX on CPU for object detection.")
         predictor = YoloModel(MODEL_NAME, "ONNX", OD_IMG_SIZE, device="cpu", SEGMENT=SEGMENT)
     return predictor
 
@@ -164,10 +166,10 @@ def first_run(predictor, warped_frame, SHOW_FRAME, corner_detection, selected_co
 
         num_housebots = len(first_run_ml["housebot"])
         num_bots = len(first_run_ml["bots"])
-        print("Initial Object Detection: " + str(num_housebots) +
+        logger.info("Initial Object Detection: " + str(num_housebots) +
               " housebots, " + str(num_bots) + " bots detected")
-        print("Initial Corner Detection Output: " + str(first_run_orientation))
-        print("Initial Algorithm Output: " + str(first_move_dictionary))
+        logger.info("Initial Corner Detection Output: " + str(first_run_orientation))
+        logger.info("Initial Algorithm Output: " + str(first_move_dictionary))
 
         display_angles(first_run_orientation, first_move_dictionary,
                        warped_frame, True, centroids=corner_detection.centroids)
@@ -178,7 +180,7 @@ def first_run(predictor, warped_frame, SHOW_FRAME, corner_detection, selected_co
         cv2.imshow("", warped_frame)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-        print("Warning: Initial detection of Huey and enemy robot failed." + "\n")
+        logger.warning("Initial detection of Huey and enemy robot failed." + "\n")
 
     return algorithm
 
@@ -320,7 +322,7 @@ def quantize(detected_bots, selected_colors, show, is_flipped=1, settings=None):
 
 def draw_yaw_text(image, yaw_value,unflipped, valid=True):
     """Draws the yaw value in degrees onto the OpenCV image window."""
-    print(f"unflipped: {unflipped}")
+    logger.info(f"unflipped: {unflipped}")
     if yaw_value is None:
         return
     

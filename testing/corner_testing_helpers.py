@@ -1,6 +1,10 @@
 import math
 import cv2
 import numpy as np
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 def draw_orientation_arrow(frame, detected_bots_with_data, arrow_length=50, thickness=2):
     for bot_name, data in detected_bots_with_data[0].items():
@@ -38,17 +42,17 @@ def get_darkness_score(image, selected_colors):
     #TODO: Figure out masking? (display real version)
 
     mask = cv2.inRange(image, bot_color_rgb, bot_color_rgb)
-    print(bot_color_rgb)
+    logger.debug(bot_color_rgb)
 
     # lower_green = np.array([0, 100, 0])
-    # print(lower_green)
+    # logger.debug(lower_green)
     # upper_green = np.array([100, 255, 100])
     # mask = cv2.inRange(image, lower_green, upper_green)
 
     cv2.imshow("Robot Mask", mask)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-    print(cv2.countNonZero(mask))
+    logger.debug(cv2.countNonZero(mask))
 
 def angle_difference(a1, a2):
     """

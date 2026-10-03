@@ -38,6 +38,11 @@ from warp_main import warp
 from warp_main import get_warp_maps
 from warp_main import warp_map
 
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
+
 folder = os.getcwd() + "/main_files"
 
 CAMERA_STREAM = False               # Keep false when running on video
@@ -77,7 +82,7 @@ def main():
         ret, frame = cap.read()
 
         if not ret:
-            print("Failed to capture image" + "\n")
+            logger.warning("Failed to capture image" + "\n")
             break
 
         warped_frame = warp_map(frame, map_x, map_y)
@@ -89,7 +94,7 @@ def main():
         corner_detection.set_bots(detected_bots)
 
         detected_bots_with_data = corner_detection.corner_detection_main()
-        print(detected_bots_with_data)
+        logger.debug(detected_bots_with_data)
 
         # Differs from main
         # Here we collect an unquantized image of Huey using the bounding box we get from corner_detection_main()
@@ -101,7 +106,7 @@ def main():
         if frame_number % COLLECTION_FREQ == 0:
             file_save_path = os.path.join(save_folder, f"{frame_number}.png")
             cv2.imwrite(file_save_path, cropped)
-            print(f"Saved crop: x1={x1}, y1={y1}, x2={x2}, y2={y2}, shape={cropped.shape}")
+            logger.debug(f"Saved crop: x1={x1}, y1={y1}, x2={x2}, y2={y2}, shape={cropped.shape}")
         frame_number += 1
 
 if __name__ == "__main__":

@@ -227,3 +227,6 @@ __marimo__/
 
 # Ignore output of runtimesheet
 runtimesheet/output/*
+
+# Algorithm test files
+algorithm/RamRamTest/*

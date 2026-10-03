@@ -5,6 +5,10 @@ import math
 from dotenv import load_dotenv
 from ultralytics import YOLO
 import numpy as np
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 # from template_model import TemplateModel # to run in machine
 from machine.template_model import TemplateModel  # to run in main
@@ -183,7 +187,7 @@ if __name__ == "__main__":
     
     # TODO: Make this actually a useful test case!
 
-    print("starting testing with PT model")
+    logger.debug("starting testing with PT model")
     predictor = YoloModel("100epoch11","PT")
 
     img_path = (
@@ -198,6 +202,6 @@ if __name__ == "__main__":
     bots = predictor.predict(img, show=True)
     end_time = time.time()
     elapsed = end_time - start_time
-    print(f"elapsed time: {elapsed:.4f}")
+    logger.debug(f"elapsed time: {elapsed:.4f}")
 
     # predictor.show_predictions(img, bots)
