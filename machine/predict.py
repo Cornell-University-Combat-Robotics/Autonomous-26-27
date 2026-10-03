@@ -73,8 +73,6 @@ class YoloModel(TemplateModel):
         else:
             results = self.model(img, **predict_kwargs)
 
-        results = self.model(img, **predict_kwargs)
-
         result = results[0]
 
         # 1. BATCH EXTRACT EVERYTHING TO CPU ONCE
