@@ -227,3 +227,8 @@ __marimo__/
 
 # Algorithm test files
 algorithm/RamRamTest/*
+
+# Color Output Stuff
+color_output.csv
+main_files/homography_matrix.txt
+main_files/selected_colors.txt
