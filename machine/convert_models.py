@@ -27,6 +27,6 @@ model = YOLO(models_folder + model_name + "/" + str(desired_model_input_size) +
              "/" + model_name + base_model_extension, task=desired_task)
 
 print(model.export(format=desired_format, imgsz=desired_model_input_size,
-      half=True, simplify=True, task='segment'))
+      half=True, simplify=True, task=desired_task))
 
 # Terminal prompt: yolo export model=./machine/models/SmallComp/416/SmallComp.pt format=engine simplify=True imgsz=416 half=True
