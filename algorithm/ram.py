@@ -17,6 +17,11 @@ from .ram_helper import (
     to_float
 )
 
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
+
 
 class Ram():
     # ----------------------------- CONSTANTS -----------------------------
@@ -186,7 +191,7 @@ class Ram():
         #     if abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE * 0.5:
         #         counter_orientation += 1
 
-        print("👨‍🔧👨‍🔧👨‍🔧 counter pos:", counter_pos)
+        logger.debug("👨‍🔧👨‍🔧👨‍🔧 counter pos:", counter_pos)
 
         if counter_pos >= self.BACK_UP_THRESHOLD:
             self.is_recovering = True
@@ -214,11 +219,11 @@ class Ram():
             if prev_orientation == self.huey_orientation:
                 counter_orientation += 1
 
-        # print(f"💅POPOS:💅 {self.huey_position}")
-        # print(f"🛸ORORIE:🛸 {self.huey_orientation}")
-        # print(f"🦒🦒🦒GIRTH {self.huey_girth}")
-        # print(f"🇦🇮COUNTER POS {counter_pos}")
-        # print(f"😹COUNTER EDGE {counter_orientation}")
+        # logger.debug(f"💅POPOS:💅 {self.huey_position}")
+        # logger.debug(f"🛸ORORIE:🛸 {self.huey_orientation}")
+        # logger.debug(f"🦒🦒🦒GIRTH {self.huey_girth}")
+        # logger.debug(f"🇦🇮COUNTER POS {counter_pos}")
+        # logger.debug(f"😹COUNTER EDGE {counter_orientation}")
 
         self.reverse = 1
 
@@ -230,11 +235,11 @@ class Ram():
             if (self.huey_position[0] < self.huey_girth):
                 self.against_wall = "LEFT"
                 if (0 <= self.huey_orientation < 45 or 315 < self.huey_orientation <= 359):
-                    # print("👿 AGAINST A LEFT WALL, FORWARD 👿")
+                    # logger.debug("👿 AGAINST A LEFT WALL, FORWARD 👿")
                     self.moving_forward = 1 * self.reverse
                     return 1 * self.reverse
                 else:
-                    # print("👼 AGAINST A LEFT WALL, BACK 👼")
+                    # logger.debug("👼 AGAINST A LEFT WALL, BACK 👼")
                     self.moving_forward = -1 * self.reverse
                     return -1 * self.reverse
 
@@ -242,11 +247,11 @@ class Ram():
             elif self.huey_position[0] > 700 - self.huey_girth:
                 self.against_wall = "RIGHT"
                 if 135 < self.huey_orientation <= 225:
-                    # print("🦋 AGAINST A RIGHT WALL, FORWARD 🦋")
+                    # logger.debug("🦋 AGAINST A RIGHT WALL, FORWARD 🦋")
                     self.moving_forward = 1 * self.reverse
                     return 1 * self.reverse
                 else:
-                    # print("🐛 AGAINST A RIGHT WALL, BACK 🐛")
+                    # logger.debug("🐛 AGAINST A RIGHT WALL, BACK 🐛")
                     self.moving_forward = -1 * self.reverse
                     return -1 * self.reverse
 
@@ -254,11 +259,11 @@ class Ram():
             elif self.huey_position[1] < self.huey_girth:
                 self.against_wall = "TOP"
                 if 225 < self.huey_orientation <= 315:
-                    # print("🌝 AGAINST A TOP WALL, FORWARD 🌝")
+                    # logger.debug("🌝 AGAINST A TOP WALL, FORWARD 🌝")
                     self.moving_forward = 1 * self.reverse
                     return 1 * self.reverse
                 else:
-                    # print("🌚 AGAINST A TOP WALL, BACK 🌚")
+                    # logger.debug("🌚 AGAINST A TOP WALL, BACK 🌚")
                     self.moving_forward = -1 * self.reverse
                     return -1 * self.reverse
 
@@ -266,16 +271,16 @@ class Ram():
             elif self.huey_position[1] > 700 - self.huey_girth:
                 self.against_wall = "BOTTOM"
                 if 45 < self.huey_orientation <= 135:
-                    # print("🦐 AGAINST A BOTTOM WALL, FORWARD 🦐")
+                    # logger.debug("🦐 AGAINST A BOTTOM WALL, FORWARD 🦐")
                     self.moving_forward = 1 * self.reverse
                     return 1 * self.reverse
                 else:
-                    # print("🍤 AGAINST A BOTTOM WALL, BACK 🍤")
+                    # logger.debug("🍤 AGAINST A BOTTOM WALL, BACK 🍤")
                     self.moving_forward = -1 * self.reverse
                     return -1 * self.reverse
 
             self.moving_forward = 0
-            # print("NO BACKY FORY💀💀💀")
+            # logger.debug("NO BACKY FORY💀💀💀")
             return 0
         return 0
 
@@ -329,7 +334,7 @@ class Ram():
         self.EDGE_THRESHOLD = 0.25*self.HISTORY_BUFFER
 
         if key == ord("r"):  # Press Q on keyboard to exit
-            print("Recovery key r pressed.")
+            logger.info("Recovery key r pressed.")
             self.huey_previous_positions = []
             self.huey_previous_orientations = []
             self.huey_previous_positions.append(self.huey_position)
@@ -340,7 +345,7 @@ class Ram():
             self.huey_previous_positions.append(self.huey_position)
             self.huey_previous_orientations.append(self.huey_orientation)
 
-            # print(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
+            # logger.debug(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
         self.huey_pos_count += 1
         self.huey_orient_count += 1
 
@@ -375,14 +380,14 @@ class Ram():
                 self.huey_previous_positions[-1])
 
         if time.time() < self.recovering_until:
-            # print("Recovering...")
+            # logger.info("Recovering...")
             return self.huey_move(self.recover_speed, self.recover_turn)
         else:
             self.recovering_until = 0
 
-        # print(f"💅POPOS:💅 {self.huey_position}")
-        # print(f"🛸ORORIE:🛸 {self.huey_orientation}")
-        # print(f"🦒🦒🦒GIRTH {self.huey_girth}")
+        # logger.debug(f"💅POPOS:💅 {self.huey_position}")
+        # logger.debug(f"🛸ORORIE:🛸 {self.huey_orientation}")
+        # logger.debug(f"🦒🦒🦒GIRTH {self.huey_girth}")
 
         backup = self.check_arena_edge(can_recover)
         if backup == 1:
@@ -395,7 +400,7 @@ class Ram():
             return self.huey_move(self.BACK_UP_SPEED, self.BACK_UP_TURN)
         self.is_backing = False
         if (self.check_previous_position_and_orientation(can_recover)):
-            # print("Start 🍀SPORADIH🍀🍀🍀")
+            # logger.debug("Start 🍀SPORADIH🍀🍀🍀")
             self.recovery_sequence()  # SEQUENCE
             return self.huey_move(self.recover_speed, self.recover_turn)
         else:
@@ -408,7 +413,7 @@ class Ram():
             self.delta_t = time.perf_counter() - self.old_time
             self.old_time = time.perf_counter()
         else:
-            # print("Prev pos appended.")
+            # logger.debug("Prev pos appended.")
             return self.huey_move(self.huey_old_speed, self.huey_old_turn)
 
         if bots["enemy"]:

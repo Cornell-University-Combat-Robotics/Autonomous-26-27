@@ -2,6 +2,10 @@ from tkinter import *
 import csv
 import time
 import os 
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 cursor_pos = None
 fpath = None
@@ -21,13 +25,13 @@ def obj_detection_sim(width, height):
         x= e.x
         y= e.y
         # For simulation, default is width = 640, height is 360
-        # print("Pointer is currently at %d, %d" %(x,y))
+        # logger.debug("Pointer is currently at %d, %d" %(x,y))
         global cursor_pos
         if (y > (height * 0.8)) or (y < (height * 0.2)):
             cursor_pos = None
         else:
             cursor_pos = ((x-(width/2))/(width/2), ((y-(height/2))/(-height/2)))
-        # print(cursor_pos)
+        # logger.debug(cursor_pos)
     win.bind('<Motion>',callback)
     win.mainloop()
 
@@ -47,7 +51,7 @@ def test_file_init():
     while os.path.exists(os.path.join(myDirectory, "ram_ram_test%s.csv" % i)):
         i += 1
     fpath = os.path.join(myDirectory, "ram_ram_test%s.csv" % i)
-    # print(fpath)
+    # logger.debug(fpath)
     with open(fpath, 'w', newline='') as file: 
         writer = csv.DictWriter(file, fieldnames = fields)
         writer.writeheader() 

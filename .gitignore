@@ -224,3 +224,6 @@ __marimo__/
 
 # DS Store
 .DS_Store
+
+# Algorithm test files
+algorithm/RamRamTest/*

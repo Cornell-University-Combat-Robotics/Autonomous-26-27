@@ -1,6 +1,10 @@
 import time
 import serial
 import serial.tools.list_ports
+import logging
+import logging_config.logging_config 
+
+logger = logging.getLogger(__name__)
 
 
 class OurSerial():
@@ -47,7 +51,7 @@ class OurSerial():
         Allows user to determine what port the arduino is on
 
         User Guide: 
-        1. Look at port list printed by choose_port
+        1. Look at port list logged by choose_port
         2. unplug arduino and press '0' to refresh list
         3. Look to see which port is missing
         4. replug arduino and refresh port list
@@ -60,21 +64,21 @@ class OurSerial():
             available_ports = serial.tools.list_ports.comports()
             port_dic = {}
             if len(available_ports) == 0:
-                print("No ports found")
+                logger.info("No ports found")
             else:
-                print("Choose a port from the options below:")
+                logger.info("Choose a port from the options below:")
                 for i in range(len(available_ports)):
                     port = available_ports[i]
                     port_dic[str(i+1)] = port.device
-                    print(str(i+1) + ":", port)
-            print("Choose 0 to refresh your options")
+                    logger.info(str(i+1) + ":", port)
+            logger.info("Choose 0 to refresh your options")
 
             selection = input("Enter your selection here: ")
             return [selection, port_dic]
 
         def check_validity(selection):
             while selection != "0" and selection not in port_dic:
-                print("Selection invalid. Choose one of the following or 0 to refresh options:",
+                logger.info("Selection invalid. Choose one of the following or 0 to refresh options:",
                       list(port_dic.keys()))
                 selection = input("Enter your selection here: ")
             return selection
