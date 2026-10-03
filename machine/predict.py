@@ -108,6 +108,7 @@ class YoloModel(TemplateModel):
             cls = int(boxes_cls[i])
             track_id = boxes_id[i]
             
+            # This exists so we can test with other auton NHRL guy's model
             if isinstance(class_names, dict):
                 class_name = str(class_names.get(cls, "")).lower()
             elif cls < len(class_names):
