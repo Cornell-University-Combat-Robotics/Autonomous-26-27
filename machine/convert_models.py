@@ -18,7 +18,8 @@ desired_model_input_size = 640
 # desired_format = "engine"
 # desired_format = "onnx"
 desired_format = "openvino"
-
+#desired_task = 'detect'
+desired_task = 'segment'
 base_model_extension = ".pt"
 
 # Load the YOLO model
