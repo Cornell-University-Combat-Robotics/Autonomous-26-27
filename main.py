@@ -97,7 +97,7 @@ elif MODE == "video":
     IS_TRANSMITTING = False         # True to send transmissions to live Huey via Arduino
     WEAPON_ON = False
     IS_ORIGINAL_FPS = False         # Process every captured frame, False -> cap at FRAME_RATE, only TRUE for Live
-    FRAME_RATE = 60                 # Manually set frame rate for videos
+    FRAME_RATE = 30                 # Manually set frame rate for videos
     CAMERA_STREAM = False           # True to run frame capture in a seperate thread, always false for videos
 
 elif MODE == "custom":
