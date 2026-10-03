@@ -1,3 +1,6 @@
+# This file is used to convert YOLO models to different formats (e.g., CoreML, TensorRT, ONNX, OpenVINO) for deployment on various platforms. 
+# It uses the Ultralytics YOLO library to load the model and export it in the desired format.
+
 from ultralytics import YOLO
 
 models_folder = "./machine/models/"
