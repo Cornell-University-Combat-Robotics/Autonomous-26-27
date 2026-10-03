@@ -210,7 +210,7 @@ def find_centroids_per_color(side: str, image: np.ndarray, hsv_image: np.ndarray
     centroids = []
     for contour in sorted_contours:
         area = cv2.contourArea(contour)
-        logger.debug("Area", area)
+        logger.debug(f"Area: {area}")
         if area > area_threshold:
             if len(centroids) >= 2:
                 break
