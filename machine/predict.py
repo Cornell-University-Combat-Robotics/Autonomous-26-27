@@ -17,6 +17,8 @@ load_dotenv()
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 DEBUG = False
+# Outline colors (BGR) for tracked robots, so the two bots can be told apart across frames
+TRACK_COLORS = [(0, 0, 255), (255, 0, 0)]  # Red, Blue
 
 class YoloModel(TemplateModel):
     # General template for using YOLO to load model files and use them.
@@ -55,6 +57,8 @@ class YoloModel(TemplateModel):
 
         self.device = device
         self.img_size = image_size
+        # Maps track ID -> outline color; holds at most one ID per color in TRACK_COLORS
+        self.track_colors = {}
         # compiled_model = core.compile_model(model=model, device_name=device.value)
 
     def predict(self, img, confidence_threshold=0.10,show=False, track=False, rs=None):
@@ -156,14 +160,36 @@ class YoloModel(TemplateModel):
         output = {"bots": robots, "housebot": housebots}
         return output
 
+    def assign_track_colors(self, bots):
+        # Gives each tracked robot a stable outline color for as long as its track ID persists.
+        # A color is only handed to a new ID if no robot currently in frame holds it, so a robot
+        # that ByteTrack re-acquires under a new ID takes over the color of the one that was lost.
+        active_ids = [int(bot["track_id"]) for bot in bots if bot.get("track_id") is not None]
+        for track_id in active_ids:
+            if track_id in self.track_colors:
+                continue
+            held_by_active = {color for tid, color in self.track_colors.items() if tid in active_ids}
+            free_colors = [color for color in TRACK_COLORS if color not in held_by_active]
+            if not free_colors:
+                continue  # More tracked robots than colors; extras fall back to white
+            # Prefer a color nobody holds over one held by a robot that's just out of frame
+            free_colors.sort(key=lambda color: color in self.track_colors.values())
+            color = free_colors[0]
+            self.track_colors = {tid: c for tid, c in self.track_colors.items() if c != color}
+            self.track_colors[track_id] = color
+        return self.track_colors
+
     def show_predictions(self, img, bots_dict):
+        track_colors = self.assign_track_colors(bots_dict.get("bots", []))
         for label, bots in bots_dict.items():
             for bot in bots:
                 # Choose color based on the class
                 if "housebot" in label:
-                    color = (0, 0, 255)  # Red for housebot
+                    color = (0, 255, 0)  # Green for housebot
+                elif bot.get("track_id") is not None and int(bot["track_id"]) in track_colors:
+                    color = track_colors[int(bot["track_id"])]  # Red or blue per tracked robot
                 else:
-                    color = (255, 255, 255)  # White for bots
+                    color = (255, 255, 255)  # White for untracked bots
 
                 # Draw segmentation outline and "cloud" if available
                 if "segment_points" in bot and bot["segment_points"] is not None:
