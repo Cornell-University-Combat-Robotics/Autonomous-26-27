@@ -133,5 +133,4 @@ and re-reviewed per match so a bumped camera doesn't silently reuse a stale warp
   Humans lead ideation and design, and must understand and be able to defend every line, so any
   AI-written change has to be explained thoroughly enough for a human to defend it in depth.
 
-Note: the ruff `target-version` is `py311` (matching the interpreter on the robot) even though the
-projects require Python 3.13.12 for development.
+Note: the ruff `target-version` is `py313`, matching the Python 3.13.12 the projects require.

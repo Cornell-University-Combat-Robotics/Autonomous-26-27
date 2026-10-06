@@ -43,7 +43,7 @@ build-backend = "uv_build"
 
 [tool.ruff]
 line-length = 100
-target-version = "py313ß"
+target-version = "py313"
 src = ["services"]
 
 [tool.ruff.lint]
