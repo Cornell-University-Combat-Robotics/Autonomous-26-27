@@ -10,6 +10,7 @@ import numpy as np
 from time import perf_counter as ptime
 
 from camera_stream import CameraStream
+from video_source import resolve_video_source
 from runtimesheet.runtimesheet import RuntimeSheet
 from algorithm.ram import Ram
 from corner_detection.corner_detection import RobotCornerDetection
@@ -116,13 +117,22 @@ else:
 folder = os.getcwd() + "/main_files"
 # Video options (uncomment one for MODE = "video")
 # camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+# camera_number = folder + "/test_videos/huey_vs_prince.mp4"
 # camera_number = folder + "/test_videos/huey_hell.mp4"
 # camera_number = folder + "/test_videos/huey_in_n_out.mp4"
 # camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
 # camera_number = folder + "/test_videos/orbital_huey.mp4"
 # camera_number = folder + "/test_videos/diagona_huey.mp4"
 # camera_number = folder + "/test_videos/huey_backs.mp4"
+
+# Video URL options (MODE = "video"): a direct Brettzone .mp4 link or a YouTube link
+camera_number = "https://nhrl-matches.us-east-1.linodeobjects.com/proxy/Cage-6-Overhead-High-2026-10-03_19-59-35.617_720p.mp4"
+# camera_number = "https://www.youtube.com/watch?v=VIDEO_ID"
+
+# Only applies when camera_number is a URL.
+# False -> stream the video, nothing saved to disk
+# True  -> download it into main_files/test_videos once, then reuse that file on later runs
+DOWNLOAD_VIDEO_URL = False
 
 # Webcam index (used for MODE = "live" or MODE = "comp")
 # camera_number = 0
@@ -173,12 +183,15 @@ def main():
     try:
         # 1. Start the capturing frame from the camera or pre-recorded video
         # 2. Capture initial frame by pressing '0'
+        # A URL camera_number becomes a stream URL or a downloaded file path; anything else is unchanged
+        video_source = resolve_video_source(
+            camera_number, DOWNLOAD_VIDEO_URL, folder + "/test_videos")
         if CAMERA_STREAM:
-            stream = CameraStream(camera_number).start()
+            stream = CameraStream(video_source).start()
             captured_image = key_frame(
                 stream, CAMERA_STREAM, selection_scale=DISPLAY_SCALE)
         else:
-            cap = cv2.VideoCapture(camera_number)
+            cap = cv2.VideoCapture(video_source)
 
             if camera_type == "Webcam":
                 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
