@@ -14,6 +14,7 @@ dependencies = [
     # numpy 2.4+ breaks YOLO CoreML export; coremltools 9.0 is only tested up to torch 2.7.
     "coremltools>=9.0,<10 ; sys_platform == 'darwin'",
     "cv2-enumerate-cameras>=1.3.4",
+    "lap>=0.5.13",
     "line-profiler>=5.0.2",
     "matplotlib>=3.11.2",
     "numpy==2.3.5",

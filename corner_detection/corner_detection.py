@@ -118,7 +118,7 @@ class RobotCornerDetection:
 
                 angle = np.acos(np.dot(same_color_side, other_color_side)/(mag_same*mag_opp))*180/math.pi
 
-                logger.debug("Angle 📐📐📐: \n", angle)
+                logger.debug(f"Angle 📐📐📐: \n {angle}")
                 if (90 + tolerance < angle or 90 - tolerance > angle):
                     return 0
         return 1

@@ -50,13 +50,13 @@ MODE = "video"
 WARP_AND_COLOR_PICKING = True
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
-BLACKOUT = False # Segmentation models "blackout" by default, so always keep false with segmentation.
+BLACKOUT = True # Segmentation models "blackout" by default, so always keep false with segmentation.
 COLOR_QUANTIZATION = True  # Should almost always stay True
 CAMERA_STREAM = False     # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
 USE_TRACKING = True       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
-SEGMENT = True  # Set to True to use segmentation model instead of detection model
+SEGMENT = False  # Set to True to use segmentation model instead of detection model
 
 # Logging / debug outputs
 SHEET_RUNTIME = True
@@ -80,9 +80,9 @@ FRAME_RATE = 120
 
 # Model selection
 # MODEL_NAME = "SmallComp"       # Best accuracy if compute allows
-# MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
+MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
 # MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
-MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
+# MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
 OD_IMG_SIZE = 640                # Must be multiple of 32, avoid below 320
 
 if MODE == "comp" or MODE == "live":
@@ -116,7 +116,8 @@ else:
 folder = os.getcwd() + "/main_files"
 # Video options (uncomment one for MODE = "video")
 # camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+# camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+camera_number = folder + "/test_videos/shorty_vs_prince.mp4"
 # camera_number = folder + "/test_videos/huey_hell.mp4"
 # camera_number = folder + "/test_videos/huey_in_n_out.mp4"
 # camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
@@ -573,7 +574,7 @@ def main():
             color_df.to_csv("color_output.csv", index=True)
             # color_percentages_graphing.makeGraph()
         except Exception as color_exception:
-            logger.warning("Data collection failed:", color_exception)
+            logger.warning(f"Data collection failed: {color_exception}")
 
         if IS_TRANSMITTING:  # Motors need to be cleaned up correctly
             try:
@@ -584,7 +585,7 @@ def main():
                 if 'ser' in locals():
                     ser.cleanup()
             except Exception as motor_exception:
-                logger.warning("Motor cleanup failed:", motor_exception)
+                logger.warning(f"Motor cleanup failed: {motor_exception}")
 
         if CAMERA_STREAM:
             if stream:
