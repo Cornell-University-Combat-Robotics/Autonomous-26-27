@@ -70,7 +70,7 @@ class OurSerial():
                 for i in range(len(available_ports)):
                     port = available_ports[i]
                     port_dic[str(i+1)] = port.device
-                    logger.info(str(i+1) + ":", port)
+                    logger.info(f"{str(i+1)} : {port}")
             logger.info("Choose 0 to refresh your options")
 
             selection = input("Enter your selection here: ")

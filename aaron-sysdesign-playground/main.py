@@ -36,12 +36,6 @@ def main():
         detections = detector.detect(frame)
         algorithm.decide(detections)
 
-    # After the loop, service state is available for logging / debugging.
-    logger.info("----")
-    logger.info("frames captured:   {}", camera.frames_captured)
-    logger.info("recent bot counts: {}", detector.recent_bot_counts())
-    logger.info("decisions made:    {}", algorithm.decisions_made)
-
 
 if __name__ == "__main__":
     main()
