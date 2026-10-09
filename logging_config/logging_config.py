@@ -230,3 +230,4 @@ class CustomFileHandler(logging.FileHandler):
 
 # Set the custom logger class as the default logger class
 logging.setLoggerClass(Logger)
+logging.getLogger('matplotlib.font_manager').disabled = True

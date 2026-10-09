@@ -209,19 +209,19 @@ class FloorWarper:
     def calibrate(self, key: str, corners: np.ndarray) -> None:
         """Cache a homography for key from 4 (any-order) corner points."""
         self._calibration[key] = build_transform(corners, self._output_size)
-        logger.info("warp: calibrated {}", key)
+        logger.info(f"warp: calibrated {key}")
 
     def skip(self, key: str) -> None:
         """Mark key as deliberately uncalibrated: warp() passes its frames through."""
         self._calibration[key] = None
-        logger.info("warp: skipping {} (left unwarped)", key)
+        logger.info(f"warp: skipping {key} (left unwarped)")
 
     def forget(self, key: str) -> None:
         """Drop any calibration or skip decision for key, as if it had
         never been seen -- unlike skip(), a later has(key) is False, so
         it'll be prompted for again."""
         self._calibration.pop(key, None)
-        logger.info("warp: forgot {} (will be re-prompted)", key)
+        logger.info(f"warp: forgot {key} (will be re-prompted)")
 
     def warp(self, img: np.ndarray, key: str) -> np.ndarray:
         """Return img rectified with key's cached calibration, or img

@@ -19,7 +19,7 @@ class Camera:
         # State: other services read these via the properties below, never directly.
         self._frames_captured = 0
         self._last_frame: Frame | None = None
-        logger.info("camera: initialized ({}x{})", width, height)
+        logger.info(f"camera: initialized ({width}x{height})")
 
     def read(self) -> Frame:
         """Capture and return the next frame. Called once per loop iteration."""
@@ -30,7 +30,7 @@ class Camera:
         frame = Frame(pixels=pixels, frame_id=self._frames_captured)
         self._frames_captured += 1
         self._last_frame = frame
-        logger.debug("camera: frame {} captured", frame.frame_id)
+        logger.debug(f"camera: frame {frame.frame_id} captured")
         return frame
 
     # ---- read-only state accessors -------------------------------------
