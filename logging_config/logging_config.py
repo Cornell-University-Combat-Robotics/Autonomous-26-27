@@ -26,7 +26,7 @@ TRACE_MAX_STACK_DEPTH = 1000
 TRACE_REPR_LIMIT = 200
 TRACE_ARRAY_MAX_ELEMENTS = 32
 
-RUN_NAME = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # This should be exposed to config file, can be set custom
+RUN_NAME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")  # This should be exposed to config file, can be set custom
 
 
 def _safe_repr(value: object, limit: int = TRACE_REPR_LIMIT) -> str:
