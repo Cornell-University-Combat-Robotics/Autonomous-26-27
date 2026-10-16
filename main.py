@@ -565,7 +565,7 @@ def main():
     except KeyboardInterrupt:
         logger.warning("KEYBOARD INTERRUPT CLEAN UP")
     except Exception as exception:
-        logger.warning("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:", exception)
+        logger.warning("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:" + exception)
     finally:
 
         # Newbie squadron trial
