@@ -47,16 +47,17 @@ MODE = "video"
 # MODE = "custom"
 
 # Core behavior
-WARP_AND_COLOR_PICKING = True
+
+SEGMENT = True  # Set to True to use segmentation model instead of detection model
+WARP_AND_COLOR_PICKING = False
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
-BLACKOUT = True # Segmentation models "blackout" by default, so always keep false with segmentation.
+BLACKOUT = True and not SEGMENT # Segmentation models "blackout" by default, so always keep false with segmentation.
 COLOR_QUANTIZATION = True  # Should almost always stay True
 CAMERA_STREAM = False     # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
 USE_TRACKING = True       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
-SEGMENT = False  # Set to True to use segmentation model instead of detection model
 
 # Logging / debug outputs
 SHEET_RUNTIME = True
@@ -80,9 +81,9 @@ FRAME_RATE = 120
 
 # Model selection
 # MODEL_NAME = "SmallComp"       # Best accuracy if compute allows
-MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
+# MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
 # MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
-# MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
+MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
 OD_IMG_SIZE = 640                # Must be multiple of 32, avoid below 320
 
 if MODE == "comp" or MODE == "live":
@@ -93,7 +94,6 @@ if MODE == "comp" or MODE == "live":
 
     if MODE == "comp":
         WEAPON_ON = True   
-
     else: # MODE == "live"
         WEAPON_ON = False
 
@@ -435,6 +435,13 @@ def main():
                         move_dictionary = algorithm.ram_ram(
                             detected_bots_with_data, CAN_RECOVER, fps=FRAME_RATE, key=key)
                         
+                        logger.info(f"Heading 🫪 {algorithm.huey_enemy_heading()}")
+                        logger.info(f"Radius ⚾️ {algorithm.huey_enemy_radius()}")
+                        cv2.putText(warped_frame, f"H: {algorithm.huey_enemy_heading()}", (550, 100),
+                                            cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
+                        cv2.putText(warped_frame, f"R: {algorithm.huey_enemy_radius()}", (550, 200),
+                                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.69, (0, 255, 255), 2)
+                    
 
                     # 14. Transmitting the motor values to Huey's if we're using a live video
                     with rs.log_timing("Transmission"):
@@ -565,7 +572,7 @@ def main():
     except KeyboardInterrupt:
         logger.warning("KEYBOARD INTERRUPT CLEAN UP")
     except Exception as exception:
-        logger.warning("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:" + exception)
+        logger.warning(f"UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP: {exception}")
     finally:
 
         # Newbie squadron trial
