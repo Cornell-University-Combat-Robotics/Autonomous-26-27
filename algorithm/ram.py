@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Ram:
     """
-    Controls our bot's prediction algorithms to return turn and distance values to hit the enemy bot.
+    Controls our bot's prediction algorithms to return left, right, speed and turn to hit the enemy bot.
 
     Attributes:
         huey_position (np.ndarray) : Huey's current center [x, y] in pixels
@@ -91,7 +91,7 @@ class Ram:
         is_recovering: bool = False,
     ) -> None:
         """
-        Instantiates state of ram alorithm (where Huey and enemy are, history buffers, timing, PID controllers, and recovery flags)
+        Instantiates state of ram algorithm (where Huey and enemy are, history buffers, timing, PID controllers, and recovery flags).
 
         Args:
             bots: Dictionary of huey and enemy, each being a dictionary itself of position, and for huey orientation.
@@ -203,11 +203,11 @@ class Ram:
 
     def huey_move(self, speed: float, turn: float) -> dict[str:float]:
         """
-        Moves Huey at the input speed with the input turn, clamped to +-1
+        Moves Huey at the input speed with the input turn, clamped to +-1.
 
         Args:
             speed: How fast to move Huey forward (or backward, if negative)
-            turn: How much to turn Huey (positive is right, negative left)
+            turn: How much to turn Huey (positive speeds up right motors and turns left, negative speeds up left motors and turns right)
 
         Returns:
             Dictionary with how much to move the right and left side of Huey, speed, and turn
@@ -221,7 +221,8 @@ class Ram:
 
     def recovery_sequence(self):
         """
-        Hard coded function to move Huey backwards, forward, left, then right.
+        Picks the next move, sets recover_speed/recover_turn, and sets recovering_until to 0.35-0.6 s from now.
+        Starting from step 0, it cycles left → right → forward → back.        
         """
         self.recovery_step += 1
         duration = random.uniform(0.35, 0.6)
@@ -232,6 +233,7 @@ class Ram:
     def check_previous_position_and_orientation(self, can_recover: bool = True) -> bool:
         """
         Guard for going into recovery mode. Will return true if bot should go into recovery mode, false if it should not.
+        Note: Currently only checks position.
 
         Args:
             can_recover: global config var. boolean representing whether we are allowing bot to go into recovery mode.
@@ -254,7 +256,7 @@ class Ram:
                 counter_pos += 1
 
         # for prev_orientation in self.huey_previous_orientations:
-        #     # TODO: work out angle range
+        #     # TODO: optional to consider orientation
         #     if abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE * 0.5:
         #         counter_orientation += 1
 
@@ -270,7 +272,7 @@ class Ram:
 
     def check_arena_edge(self, can_recover: bool = True) -> int:
         """
-        Logic for when bot is not moving. Keeps track of how long bot has been still. Once threshhold
+        Logic for when bot is not moving. Keeps track of how long bot has been still. Once threshold
         has been reached (and bot is close to wall), direction of movement is indicated (0 is sent by default).
 
         Args:
@@ -417,13 +419,13 @@ class Ram:
         self, bots: dict[str, any] = None, can_recover: bool = True, fps: int = 120, key: int = None
     ) -> dict[str, float]:
         """
-        Main method for the ram ram algorithm. This direct bot to turn to face the enemy and charge towards it (with edge cases considered).
+        Main method for the ram ram algorithm. This directs bot to turn to face the enemy and charge towards it (with edge cases considered).
 
         Args:
             bots: dict[str, any] representing the data for our bot and the enemy
             can_recover: boolean (from global var) to indicate whether bot can recover
             fps: number of frames per second of the camera (sets history size for recovery)
-            key: integer representing the ascii value of a key pressed (r to exit, anything else or None to not exit)
+            key: integer representing the ascii value of a key pressed (r to clear the orientation history AKA resets recovery)
 
         Returns:
             dictionary of floats representing left speed, right speed, speed, and turn

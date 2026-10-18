@@ -30,8 +30,7 @@ def invert_y(pos: np.ndarray) -> np.ndarray:
 
 def check_wall(predicted_position: np.ndarray) -> None:
     """
-    If enemy robot predicted position is outside of arena, mutates
-    predicted position to be inside.
+    If enemy robot predicted position is outside of arena, mutates predicted position to be inside.
 
     Args:
         predicted_position: Array of where we think the robot is
@@ -69,7 +68,8 @@ def to_float(x: Any, fallback: float = 0.0) -> float:
     Convert x to float, if x can't be converted, then return fallback.
 
     Args:
-        x: Value to be converted to float.
+        x (Any): Value to be converted to float.
+        fallback (float): Value to use if x can't be converted. NaN and inf return the fallback too.
 
     Returns:
         float: If x can be converted to float, then x. Otherwise, returns fallback.
@@ -85,10 +85,10 @@ def to_float(x: Any, fallback: float = 0.0) -> float:
 
 def mix_speed_turn(speed: float, turn: float) -> tuple[float, float]:
     """
-    Mix forward speed and turn into left/right motor speeds
+    Mix forward speed and turn into left/right motor speeds.
 
     Args:
-        speed: how quickly to go foward (and what direction)
+        speed: how quickly to go forward (and what direction)
         turn: how quickly to turn (and what direction)
 
     Returns:
@@ -102,7 +102,7 @@ def mix_speed_turn(speed: float, turn: float) -> tuple[float, float]:
 
 def init_values(bots: dict, arena_width: int, is_pos: bool, is_huey: bool) -> float | np.ndarray:
     """
-    Initialize a bot's position or orientation from detected values
+    Initialize a bot's position or orientation from detected values.
 
     Args:
         bots: Dictionary of huey and enemy bots, each with bbox and center and other things.
