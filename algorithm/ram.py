@@ -182,6 +182,13 @@ class Ram():
         # return dot_product
         return np.rad2deg(np.arccos(dot_prod)) # [0,180] deg
 
+    def hit_loss(self, weights: dict[str: float]): #huey_rad: float, huey_head: float, y: tuple[float, float]
+        rad_score = math.pow(self.huey_enemy_radius()/990, weights["radius"])
+        heading_score = math.pow(self.huey_enemy_heading()/180, weights["heading"])
+        
+        hit_score = rad_score * heading_score
+        return hit_score
+
     def recovery_sequence(self):
         self.recovery_step += 1
         duration = random.uniform(0.35, 0.6)

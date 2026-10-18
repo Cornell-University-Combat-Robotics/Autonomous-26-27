@@ -49,7 +49,7 @@ MODE = "video"
 # Core behavior
 
 SEGMENT = True  # Set to True to use segmentation model instead of detection model
-WARP_AND_COLOR_PICKING = False
+WARP_AND_COLOR_PICKING = True
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
 BLACKOUT = True and not SEGMENT # Segmentation models "blackout" by default, so always keep false with segmentation.
@@ -116,8 +116,9 @@ else:
 folder = os.getcwd() + "/main_files"
 # Video options (uncomment one for MODE = "video")
 # camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-# camera_number = folder + "/test_videos/huey_vs_prince.mp4"
-camera_number = folder + "/test_videos/shorty_vs_prince.mp4"
+camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+# camera_number = folder + "/test_videos/shorty_vs_prince.mp4"
+# camera_number = folder + "/test_videos/blink224_huey.mp4"
 # camera_number = folder + "/test_videos/huey_hell.mp4"
 # camera_number = folder + "/test_videos/huey_in_n_out.mp4"
 # camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
@@ -434,13 +435,23 @@ def main():
                     with rs.log_timing("Algorithm"):
                         move_dictionary = algorithm.ram_ram(
                             detected_bots_with_data, CAN_RECOVER, fps=FRAME_RATE, key=key)
-                        
-                        logger.info(f"Heading 🫪 {algorithm.huey_enemy_heading()}")
-                        logger.info(f"Radius ⚾️ {algorithm.huey_enemy_radius()}")
-                        cv2.putText(warped_frame, f"H: {algorithm.huey_enemy_heading()}", (550, 100),
+
+                        heading = algorithm.huey_enemy_heading()
+                        radius = algorithm.huey_enemy_radius()
+                        score = algorithm.hit_loss({"radius": 1, "heading": 1})
+                        score_threshold = 0.05
+
+                        logger.info(f"Heading 🫪 {heading}")
+                        logger.info(f"Radius ⚾️ {radius}")
+                        logger.info(f"Score 🦋 {score}")
+                        cv2.putText(warped_frame, f"H: {heading}", (550, 100),
                                             cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
-                        cv2.putText(warped_frame, f"R: {algorithm.huey_enemy_radius()}", (550, 200),
+                        cv2.putText(warped_frame, f"R: {radius}", (550, 200),
                                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.69, (0, 255, 255), 2)
+                        cv2.putText(warped_frame, f"S: {score}", (550, 300),
+                                                                                            cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
+                        cv2.putText(warped_frame, f"Hit?: {score < score_threshold}", (550, 400),
+                                                                                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
                     
 
                     # 14. Transmitting the motor values to Huey's if we're using a live video
