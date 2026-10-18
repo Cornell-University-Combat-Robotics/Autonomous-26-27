@@ -84,7 +84,7 @@ def get_homography_mat(frame, display_scale=1.0):
                 logger.info("No points to remove.")
         key = cv2.waitKey(1) & 0xFF
 
-    logger.info("Final Selected Points:", corners)
+    logger.info(f"Final Selected Points: {corners}")
     dest_pts = [[0, 0], [ARENA_WIDTH, 0], [ARENA_WIDTH, ARENA_WIDTH], [0, ARENA_WIDTH]]
     matrix, _ = cv2.findHomography(np.array(corners), np.array(dest_pts))
     cv2.destroyAllWindows()

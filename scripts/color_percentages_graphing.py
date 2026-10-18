@@ -13,7 +13,7 @@ def makeGraph():
 
     # Log diagnostic information
 
-    logger.debug("Column names:", df.columns.tolist())
+    logger.debug(f"Column names: {df.columns.tolist()}")
     logger.debug(f"Data shape: {df.shape[0]} rows, {df.shape[1]} columns")
     logger.debug("\nFirst 10 rows:")
     logger.debug(df.head(10))
