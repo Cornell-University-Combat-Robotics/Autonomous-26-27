@@ -1,4 +1,9 @@
-# Import libraries
+""" 
+DEPRECATED: This is not part of the main loop, and is for testing purposes. It is left in to have work
+to build off of when building a better algorithm testing sandbox.
+
+A pygame sandbox used for testing the ram.py algorithm.
+"""
 import pygame
 import math
 from ram import Ram

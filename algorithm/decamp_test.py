@@ -1,3 +1,9 @@
+""" 
+DEPRECATED: This is not part of the main loop, and is for testing purposes. It is left in to have work
+to build off of when building a better algorithm testing sandbox.
+
+decamp_test is a pygame sandbox used for testing the ram.py algorithm.
+"""
 # Import libraries
 import pygame
 import math
