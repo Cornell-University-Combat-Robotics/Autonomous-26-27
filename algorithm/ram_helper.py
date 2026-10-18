@@ -13,7 +13,7 @@ RIGHT_TURN = 1
 ARENA_WIDTH = 700
 
 
-def invert_y(pos: np.array) -> np.array:
+def invert_y(pos: np.ndarray) -> np.ndarray:
     """
     Inverts y position, does not mutate pos.
 
@@ -21,14 +21,14 @@ def invert_y(pos: np.array) -> np.array:
         pos: Position to be inverted
 
     Returns:
-        np.array: copy of pos with y inverted
+        np.ndarray: copy of pos with y inverted
     """
     pos2 = np.copy(pos)
     pos2[1] = -pos[1]
     return pos2
 
 
-def check_wall(predicted_position: np.array) -> None:
+def check_wall(predicted_position: np.ndarray) -> None:
     """
     If enemy robot predicted position is outside of arena, mutates
     predicted position to be inside.
@@ -100,7 +100,7 @@ def mix_speed_turn(speed: float, turn: float) -> tuple[float, float]:
     return left, right
 
 
-def init_values(bots: dict, arena_width: int, is_pos: bool, is_huey: bool) -> float | np.array:
+def init_values(bots: dict, arena_width: int, is_pos: bool, is_huey: bool) -> float | np.ndarray:
     """
     Initialize a bot's position or orientation from detected values
 
@@ -111,7 +111,7 @@ def init_values(bots: dict, arena_width: int, is_pos: bool, is_huey: bool) -> fl
         is_huey: Whether the bot desired for init values is huey (as opposed to enemy).
 
     Returns:
-        value: The position (np.array) or orientation (float) that we are setting
+        value: The position (np.ndarray) or orientation (float) that we are setting
     """
     if is_huey:
         if is_pos:  # Huey Position

@@ -21,19 +21,19 @@ class Ram:
     Controls our bot's prediction algorithms to return turn and distance values to hit the enemy bot.
 
     Attributes:
-        huey_position (np.array) : Huey's current center [x, y] in pixels
-        huey_old_position (np.array) : Huey's last position
+        huey_position (np.ndarray) : Huey's current center [x, y] in pixels
+        huey_old_position (np.ndarray) : Huey's last position
         huey_orientation (float) : Huey's calculated orientation in degrees
-        enemy_position (np.array) : Enemy's current center [x, y] in pixels
+        enemy_position (np.ndarray) : Enemy's current center [x, y] in pixels
         huey_girth (float) : Half of Huey's bbox diagonal in pixels (about its radius), used for wall-proximity checks. Defaults to 67
         huey_old_speed (float) : Last speed command sent, from -1 to 1. Reused when Huey isn't detected
         huey_old_turn (float) : Huey's turn value from the last frame
         left (float) : Final ramram output for left motor
         right (float) : Final ramram output for right motor
         huey_pos_count (int) : Number of ram_ram calls since init, starting at 1
-        huey_previous_positions (list[np.array]) : Stored huey previous positions
+        huey_previous_positions (list[np.ndarray]) : Stored huey previous positions
         huey_previous_orientations (list[float]) : Stored huey previous orientations
-        enemy_previous_positions (list[np.array]) : Stored enemy previous positions
+        enemy_previous_positions (list[np.ndarray]) : Stored enemy previous positions
         old_time (float) : Time of last loop through ramram
         delta_t (float) : Change in time since last loop through algorithm
         turn_pid (PIDController) : Object that controls PID for turn values
@@ -83,9 +83,9 @@ class Ram:
         huey_position: np.ndarray[tuple[int], np.dtype[np.int64]] = (
             np.array([ARENA_WIDTH, ARENA_WIDTH])
         ),
-        huey_old_position: np.array = (np.array([ARENA_WIDTH, ARENA_WIDTH])),
+        huey_old_position: np.ndarray = (np.array([ARENA_WIDTH, ARENA_WIDTH])),
         huey_orientation: float = 45,
-        enemy_position: np.array = np.array([0, 0]),
+        enemy_position: np.ndarray = np.array([0, 0]),
         huey_old_turn: float = 0,
         huey_old_speed: float = 0,
         is_recovering: bool = False,

@@ -96,14 +96,15 @@ class ColorPicker:
                 return None
             elif len(selected_colors) == 4:
                 selected_colors = selected_colors[:len(selected_colors)-1]
-                logger.info("🎨 Final Selected Colors (HSV):", selected_colors)
-                logger.info("📌 Final Selected Points:", points)
+                logger.info(f"🎨 Final Selected Colors (HSV): {selected_colors}")
+                logger.info(f"📌 Final Selected Points: {points}")
                 break
 
         cv2.destroyAllWindows()
         return selected_colors
-
-    def save_colors_to_file(self, colors, output_file):
+    
+    @staticmethod
+    def save_colors_to_file(colors, output_file):
         """
         Saves the selected colors to a text file in HSV format.
 
@@ -120,10 +121,11 @@ class ColorPicker:
             logger.warning(f"Error: Output file path '{output_file}' does not exist.")
         except Exception as e:
             logger.warning(f"Error saving colors to file: {e}")
-
-    def make_new_colors(self, output_file_path, warped_frame):
-        selected_colors = self.pick_colors(warped_frame)
-        self.save_colors_to_file(selected_colors, output_file_path)
+    
+    @staticmethod
+    def make_new_colors(output_file_path, warped_frame):
+        selected_colors = ColorPicker.pick_colors(warped_frame)
+        ColorPicker.save_colors_to_file(selected_colors, output_file_path)
         return selected_colors
 
 def display_colors(selected_colors):
