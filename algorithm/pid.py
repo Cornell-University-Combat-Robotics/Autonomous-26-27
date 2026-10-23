@@ -1,6 +1,8 @@
+"""This module contains the PIDController class."""
+
+
 class PIDController:
-    """
-    A PID controller for smooth robot operation that adjusts in real time to physical responses.
+    """A PID controller for smooth robot operation that adjusts in real time to physical responses.
 
     The PID controller takes a kp (proportional constant), ki (integral constant), and kd (derivative constant)
     and adjusts to error in real time. For example, if the robot is trying to drive forward, and there is an
@@ -23,9 +25,8 @@ class PIDController:
         kd: float,
         output_limits: tuple[float, float] = (-1.0, 1.0),
         max_windup: float = 0.5,
-    ):
-        """
-        Initializes the PID controller with tuning variables and constraints.
+    ) -> None:
+        """Initializes the PID controller with tuning variables and constraints.
 
         Args:
             kp: Proportional gain constant.
@@ -52,8 +53,7 @@ class PIDController:
         self.integral = 0.0
 
     def update(self, error: float, dt: float) -> float:
-        """
-        Updates tuning variables.
+        """Updates tuning variables.
 
         Args:
             error: difference between a desired setpoint (SP) and a measured process variable (PV)
@@ -85,8 +85,6 @@ class PIDController:
         return max(min(output, self.max_out), self.min_out)
 
     def reset(self) -> None:
-        """
-        Clears the integral and error memory.
-        """
+        """Clears the integral and error memory."""
         self.prev_error = 0.0
         self.integral = 0.0

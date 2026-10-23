@@ -1,24 +1,23 @@
+"""Main file for algorithm.
+
+Pulls together pid algorithm with the ramram algorithm to take in data about positions/orientations of bot and enemy and output how bot should move (left and right side).
+"""
+
+import logging
 import math
 import random
 import time
-import cv2
-from line_profiler import profile
-from typing import Any
+
 import numpy as np
 
-from .pid import *
-
+from .pid import PIDController
 from .ram_helper import check_wall, clamp, init_values, invert_y, mix_speed_turn, to_float
-
-import logging
-import logging_config.logging_config
 
 logger = logging.getLogger(__name__)
 
 
 class Ram:
-    """
-    Controls our bot's prediction algorithms to return turn and distance values to hit the enemy bot.
+    """Controls our bot's prediction algorithms to return turn and distance values to hit the enemy bot.
 
     Attributes:
         huey_position (np.ndarray) : Huey's current center [x, y] in pixels
@@ -62,13 +61,13 @@ class Ram:
     RIGHT_TURN = 0.7
     BACK_UP_THRESHOLD = 10  # > Double EDGE_THRESHOLD
     EDGE_THRESHOLD = 5
-    RECOVERY_SPEED_VALUES = [
+    RECOVERY_SPEED_VALUES = (
         BACK_UP_SPEED * 0.8,
         LEFT_SPEED * 0.8,
         RIGHT_SPEED * 0.8,
         FORWARD_SPEED * 0.8,
-    ]
-    RECOVERY_TURN_VALUES = [BACK_UP_TURN, LEFT_TURN, RIGHT_TURN, FORWARD_TURN]
+    )
+    RECOVERY_TURN_VALUES = (BACK_UP_TURN, LEFT_TURN, RIGHT_TURN, FORWARD_TURN)
     USE_PID = True
     is_recovering = False
     is_backing = False
@@ -79,19 +78,16 @@ class Ram:
 
     def __init__(
         self,
-        bots: dict = None,
-        huey_position: np.ndarray[tuple[int], np.dtype[np.int64]] = (
-            np.array([ARENA_WIDTH, ARENA_WIDTH])
-        ),
-        huey_old_position: np.ndarray = (np.array([ARENA_WIDTH, ARENA_WIDTH])),
+        bots: dict | None = None,
+        huey_position: np.ndarray | tuple[float, float] = (ARENA_WIDTH, ARENA_WIDTH),
+        huey_old_position: np.ndarray | tuple[float, float] = (ARENA_WIDTH, ARENA_WIDTH),
         huey_orientation: float = 45,
-        enemy_position: np.ndarray = np.array([0, 0]),
+        enemy_position: np.ndarray | tuple[float, float] = (0, 0),
         huey_old_turn: float = 0,
         huey_old_speed: float = 0,
         is_recovering: bool = False,
     ) -> None:
-        """
-        Instantiates state of ram alorithm (where Huey and enemy are, history buffers, timing, PID controllers, and recovery flags)
+        """Instantiates state of ram alorithm (where Huey and enemy are, history buffers, timing, PID controllers, and recovery flags).
 
         Args:
             bots: Dictionary of huey and enemy, each being a dictionary itself of position, and for huey orientation.
@@ -202,8 +198,7 @@ class Ram:
     # ----------------------------- HELPER METHODS -----------------------------
 
     def huey_move(self, speed: float, turn: float) -> dict[str:float]:
-        """
-        Moves Huey at the input speed with the input turn, clamped to +-1
+        """Moves Huey at the input speed with the input turn, clamped to +-1.
 
         Args:
             speed: How fast to move Huey forward (or backward, if negative)
@@ -219,10 +214,8 @@ class Ram:
         self.left, self.right = left, right
         return {"left": self.left, "right": self.right, "speed": speed, "turn": turn}
 
-    def recovery_sequence(self):
-        """
-        Hard coded function to move Huey backwards, forward, left, then right.
-        """
+    def recovery_sequence(self) -> None:
+        """Hard coded function to move Huey backwards, forward, left, then right."""
         self.recovery_step += 1
         duration = random.uniform(0.35, 0.6)
         self.recovering_until = time.time() + duration
@@ -230,8 +223,7 @@ class Ram:
         self.recover_turn = self.RECOVERY_TURN_VALUES[self.recovery_step % 4]
 
     def check_previous_position_and_orientation(self, can_recover: bool = True) -> bool:
-        """
-        Guard for going into recovery mode. Will return true if bot should go into recovery mode, false if it should not.
+        """Guard for going into recovery mode. Will return true if bot should go into recovery mode, false if it should not.
 
         Args:
             can_recover: global config var. boolean representing whether we are allowing bot to go into recovery mode.
@@ -269,9 +261,10 @@ class Ram:
         return False
 
     def check_arena_edge(self, can_recover: bool = True) -> int:
-        """
-        Logic for when bot is not moving. Keeps track of how long bot has been still. Once threshhold
-        has been reached (and bot is close to wall), direction of movement is indicated (0 is sent by default).
+        """Logic for when bot is not moving.
+
+        Keeps track of how long bot has been still. Once threshhold has been reached (and bot is close to wall),
+        direction of movement is indicated (0 is sent by default).
 
         Args:
             can_recover: global config var. boolean representing whether we are allowing bot to go into recovery mode.
@@ -305,17 +298,17 @@ class Ram:
         self.reverse = 1
 
         if (
-            self.BACK_UP_THRESHOLD > counter_pos
+            counter_pos < self.BACK_UP_THRESHOLD
             and counter_pos >= self.EDGE_THRESHOLD * 2
-            and self.BACK_UP_THRESHOLD > counter_orientation
+            and counter_orientation < self.BACK_UP_THRESHOLD
             and counter_orientation >= self.EDGE_THRESHOLD * 2
         ):
             self.reverse = -1
 
         if (
-            self.BACK_UP_THRESHOLD > counter_pos
+            counter_pos < self.BACK_UP_THRESHOLD
             and counter_pos >= self.EDGE_THRESHOLD
-            and self.BACK_UP_THRESHOLD > counter_orientation
+            and counter_orientation < self.BACK_UP_THRESHOLD
             and counter_orientation >= self.EDGE_THRESHOLD
         ):
             # Huey against left wall
@@ -371,9 +364,8 @@ class Ram:
             return 0
         return 0
 
-    def predict_desired_turn_and_speed(self):
-        """
-        Calculates the desired orientation angle of the bot relative to the enemy based on prediction. The positive direction is counterclockwise.
+    def predict_desired_turn_and_speed(self) -> tuple[float, float]:
+        """Calculates the desired orientation angle of the bot relative to the enemy based on prediction. The positive direction is counterclockwise.
 
         Precondition: our_position & enemy_position
 
@@ -414,10 +406,13 @@ class Ram:
         return error_angle, distance
 
     def ram_ram(
-        self, bots: dict[str, any] = None, can_recover: bool = True, fps: int = 120, key: int = None
+        self,
+        bots: dict[str, any] | None = None,
+        can_recover: bool = True,
+        fps: int = 120,
+        key: int | None = None,
     ) -> dict[str, float]:
-        """
-        Main method for the ram ram algorithm. This direct bot to turn to face the enemy and charge towards it (with edge cases considered).
+        """Main method for the ram ram algorithm. This direct bot to turn to face the enemy and charge towards it (with edge cases considered).
 
         Args:
             bots: dict[str, any] representing the data for our bot and the enemy

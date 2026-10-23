@@ -1,6 +1,9 @@
-import numpy as np
-from typing import Any
+"""This file contains helper functions for ram."""
+
 import math
+from typing import Any
+
+import numpy as np
 
 BACK_UP_SPEED = -1
 BACK_UP_TURN = 0
@@ -14,8 +17,7 @@ ARENA_WIDTH = 700
 
 
 def invert_y(pos: np.ndarray) -> np.ndarray:
-    """
-    Inverts y position, does not mutate pos.
+    """Inverts y position, does not mutate pos.
 
     Args:
         pos: Position to be inverted
@@ -29,9 +31,7 @@ def invert_y(pos: np.ndarray) -> np.ndarray:
 
 
 def check_wall(predicted_position: np.ndarray) -> None:
-    """
-    If enemy robot predicted position is outside of arena, mutates
-    predicted position to be inside.
+    """If enemy robot predicted position is outside of arena, mutates predicted position to be inside.
 
     Args:
         predicted_position: Array of where we think the robot is
@@ -50,8 +50,7 @@ def check_wall(predicted_position: np.ndarray) -> None:
 
 
 def clamp(x: int | float, lo: int | float, hi: int | float) -> int | float:
-    """
-    Basic clamp function, bounding x between lo and hi.
+    """Basic clamp function, bounding x between lo and hi.
 
     Args:
         x: number to be bounded
@@ -65,11 +64,11 @@ def clamp(x: int | float, lo: int | float, hi: int | float) -> int | float:
 
 
 def to_float(x: Any, fallback: float = 0.0) -> float:
-    """
-    Convert x to float, if x can't be converted, then return fallback.
+    """Convert x to float, if x can't be converted, then return fallback.
 
     Args:
         x: Value to be converted to float.
+        fallback: Default value if an exception is raised.
 
     Returns:
         float: If x can be converted to float, then x. Otherwise, returns fallback.
@@ -84,8 +83,7 @@ def to_float(x: Any, fallback: float = 0.0) -> float:
 
 
 def mix_speed_turn(speed: float, turn: float) -> tuple[float, float]:
-    """
-    Mix forward speed and turn into left/right motor speeds
+    """Mix forward speed and turn into left/right motor speeds.
 
     Args:
         speed: how quickly to go foward (and what direction)
@@ -101,8 +99,7 @@ def mix_speed_turn(speed: float, turn: float) -> tuple[float, float]:
 
 
 def init_values(bots: dict, arena_width: int, is_pos: bool, is_huey: bool) -> float | np.ndarray:
-    """
-    Initialize a bot's position or orientation from detected values
+    """Initialize a bot's position or orientation from detected values.
 
     Args:
         bots: Dictionary of huey and enemy bots, each with bbox and center and other things.

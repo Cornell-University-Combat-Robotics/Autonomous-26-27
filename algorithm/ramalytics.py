@@ -1,20 +1,18 @@
-"""
-DEPRECATED: This is not part of the main loop, and is for visualization purposes.
+"""DEPRECATED: This is not part of the main loop, and is for visualization purposes.
 
 Script to visualize RamRam data: orientation, speed, etc.
 """
 
 import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 # filepath for CSV input
 CSV = "RamRamTest/ram_ram_test101.csv"
 
 
-def plotVelocity(df: pd.DataFrame) -> None:
-    """
-    Plots robot's speed data vs time with 2 lines: one line is the calculated speed from Ram, the other line is the actual bot's logged speed.
+def plot_velocity(df: pd.DataFrame) -> None:
+    """Plots robot's speed data vs time with 2 lines: one line is the calculated speed from Ram, the other line is the actual bot's logged speed.
 
     Args:
         df: dataframe containing bot's data on orientation, speed, etc.
@@ -41,10 +39,8 @@ def plotVelocity(df: pd.DataFrame) -> None:
     plot_df_filtered.plot("row_number", y=["speed", "huey_velocity"])
 
 
-def plotTurn(df: pd.DataFrame):
-    """
-    Plots robot's turn data with 2 lines: one line is the calculated turn data from Ram, the other line is the
-    frame-to-frame difference in the robot's logged orientation.
+def plot_turn(df: pd.DataFrame) -> None:
+    """Plots robot's turn data with 2 lines: one line is the calculated turn data from Ram, the other line is the frame-to-frame difference in the robot's logged orientation.
 
     Args:
         df: dataframe containing bot's data on orientation, speed, etc.
@@ -52,7 +48,6 @@ def plotTurn(df: pd.DataFrame):
     Returns:
         None: Creates a plot
     """
-
     turn = df["turn"].tolist()
     facing = df["huey_facing"].tolist()
     df["row_number"] = np.arange(len(df))
@@ -62,7 +57,7 @@ def plotTurn(df: pd.DataFrame):
     for i in range(len(facing) - 1):
         diff = facing[i + 1] - facing[i]
         diff = (diff + 180) % 360 - 180
-        dfacing.append((diff))
+        dfacing.append(diff)
 
     for i in range(len(turn)):
         turn[i] = turn[i] * 180
@@ -77,7 +72,7 @@ def plotTurn(df: pd.DataFrame):
 
 fields = ["time", "huey_velocity", "speed", "huey_facing", "turn"]
 df = pd.read_csv(CSV, skipinitialspace=True, usecols=fields)
-plotTurn(df)
-plotVelocity(df)
+plot_turn(df)
+plot_velocity(df)
 plt.xlabel("frame")
 plt.show()
