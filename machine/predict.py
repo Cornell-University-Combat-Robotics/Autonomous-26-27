@@ -11,14 +11,13 @@ import logging_config.logging_config
 logger = logging.getLogger(__name__)
 
 # from template_model import TemplateModel # to run in machine
-from machine.template_model import TemplateModel  # to run in main
 
 load_dotenv()
 
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 DEBUG = False
 
-class YoloModel(TemplateModel):
+class YoloModel():
     # General template for using YOLO to load model files and use them.
 
     def __init__(self, model_name, model_type, image_size, device=None, SEGMENT=False):
