@@ -12,8 +12,9 @@ class PIDController:
         kp (float): Proportional constant.
         ki (float): Integral constant.
         kd (float): Derivative constant.
-        min_out, max_out (tuple[float,float]): Minimum output and maximum output of the drive.
-        max_windup (float): Maximum acceration allowed.
+        min_out (float): Minimum output of the drive.
+        max_out (float): Maximum output of the drive.
+        max_windup (float): Caps the absolute value of the integral.
         prev_error (float): The error at the previous step.
         integral (float): Accumulation of error over time.
     """
@@ -37,7 +38,7 @@ class PIDController:
             max_windup: The maximum absolute value the integrated error can
                 accumulate to prevent integral windup. Defaults to 0.5.
 
-        Ex:
+        Example:
             PIDController(kp=0.01, ki=0.000, kd=0.0005, output_limits=(-1.0, 1.0))
         """
         self.kp = kp

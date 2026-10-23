@@ -202,7 +202,7 @@ class Ram:
 
         Args:
             speed: How fast to move Huey forward (or backward, if negative)
-            turn: How much to turn Huey (positive is right, negative left)
+            turn: How much to turn Huey (positive speeds up right motors and turns left, negative speeds up left motors and turns right)
 
         Returns:
             Dictionary with how much to move the right and left side of Huey, speed, and turn
@@ -246,7 +246,7 @@ class Ram:
                 counter_pos += 1
 
         # for prev_orientation in self.huey_previous_orientations:
-        #     # TODO: work out angle range
+        #     # TODO: optional to consider orientation
         #     if abs(prev_orientation - self.huey_orientation) < Ram.TOLERANCE * 0.5:
         #         counter_orientation += 1
 
@@ -418,7 +418,7 @@ class Ram:
             bots: dict[str, any] representing the data for our bot and the enemy
             can_recover: boolean (from global var) to indicate whether bot can recover
             fps: number of frames per second of the camera (sets history size for recovery)
-            key: integer representing the ascii value of a key pressed (r to exit, anything else or None to not exit)
+            key: integer representing the ascii value of a key pressed (r to clear the orientation history AKA resets recovery)
 
         Returns:
             dictionary of floats representing left speed, right speed, speed, and turn

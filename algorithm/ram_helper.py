@@ -86,7 +86,7 @@ def mix_speed_turn(speed: float, turn: float) -> tuple[float, float]:
     """Mix forward speed and turn into left/right motor speeds.
 
     Args:
-        speed: how quickly to go foward (and what direction)
+        speed: how quickly to go forward (and what direction)
         turn: how quickly to turn (and what direction)
 
     Returns:
