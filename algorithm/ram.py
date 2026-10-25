@@ -182,14 +182,6 @@ class Ram():
         # return dot_product
         return np.rad2deg(np.arccos(dot_prod)) # [0,180] deg
 
-    # Use for debugging only (10/25)
-    def hit_loss(self, weights: dict[str: float]): #huey_rad: float, huey_head: float, y: tuple[float, float]
-        rad_score = math.pow(self.huey_enemy_radius()/990, weights["radius"])
-        heading_score = math.pow(self.huey_enemy_heading()/180, weights["heading"])
-        
-        hit_score = rad_score * heading_score
-        return hit_score
-
     def hit_pred(self, thresholds: dict[str:float]):
         rad_score = self.huey_enemy_radius()/990 # Distance normalized (0 to 1)
         heading_score = self.huey_enemy_heading()/180 # Heading normalized (0 to 1)

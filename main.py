@@ -49,7 +49,7 @@ MODE = "video"
 # Core behavior
 
 SEGMENT = True  # Set to True to use segmentation model instead of detection model
-WARP_AND_COLOR_PICKING = False
+WARP_AND_COLOR_PICKING = True
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
 BLACKOUT = True and not SEGMENT # Segmentation models "blackout" by default, so always keep false with segmentation.
@@ -446,17 +446,18 @@ def main():
                         }
                         hit_incoming = algorithm.hit_pred(thresholds)
 
-                        logger.info(f"Heading 🫪 {heading}")
-                        logger.info(f"Radius ⚾️ {radius}")
-                        logger.info(f"Score 🦋 {hit_loss}")
-                        cv2.putText(warped_frame, f"Head: {heading}", (550, 100),
-                                            cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
-                        cv2.putText(warped_frame, f"Rad: {radius}", (550, 200),
-                                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.69, (0, 255, 255), 2)
-                        cv2.putText(warped_frame, f"Loss: {hit_loss}", (550, 300),
-                                                                                            cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
-                        cv2.putText(warped_frame, f"Hit?: {hit_incoming}", (550, 400),
-                                                                                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
+                        logger.debug(f"Heading 🫪 {heading}")
+                        logger.debug(f"Radius ⚾️ {radius}")
+                        logger.debug(f"Score 🦋 {hit_loss}")
+                        logger.debug(f"Hit Incoming? 💥 {hit_incoming}")
+                        # cv2.putText(warped_frame, f"Head: {heading}", (550, 100),
+                        #                     cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
+                        # cv2.putText(warped_frame, f"Rad: {radius}", (550, 200),
+                        #                                             cv2.FONT_HERSHEY_SIMPLEX, 0.69, (0, 255, 255), 2)
+                        # cv2.putText(warped_frame, f"Loss: {hit_loss}", (550, 300),
+                        #                                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
+                        # cv2.putText(warped_frame, f"Hit?: {hit_incoming}", (550, 400),
+                        #                                                                                             cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
 
                     # 14. Transmitting the motor values to Huey's if we're using a live video
                     with rs.log_timing("Transmission"):
