@@ -1,27 +1,29 @@
+"""This file contains the methods to pick colors."""
+
+import logging
+
 import cv2
 import numpy as np
-import os
-import logging
-import logging_config.logging_config 
 
 logger = logging.getLogger(__name__)
 
+
 class ColorPicker:
-    """
-    A class for manually picking colors from an image.
-    """
+    """A class for manually picking colors from an image."""
 
     @staticmethod
-    def pick_colors(image):
-        """
-        Allows the user to manually pick colors for the robot and the front and back corners.
-        The user selects the robot's color first, followed by the front and back corners.
+    def pick_colors(image: np.ndarray) -> list[np.ndarray] | None:
+        """Let the user click to pick the robot, front-corner, and back-corner colors.
+
+        Click the robot first, then the front corner, then the back corner. Press 'z' to undo the
+        last pick. After third click, one more is required to confirm. Press Esc to cancel.
 
         Args:
-            image (str): The image to pick colors from.
+            image: BGR image to pick colors from, e.g. a warped arena frame.
 
         Returns:
-            list: Selected colors for the robot, front corner, and back corner in HSV format.
+            Three HSV colors (robot, front, back), each a uint8 array of [H, S, V]. Returns None if
+            the user cancels with Esc, or an empty list if no image was given.
         """
         try:
             if image is None:
@@ -33,7 +35,16 @@ class ColorPicker:
         selected_colors = []
         points = []
 
-        def click_event(event, x, y, flags, param):
+        def click_event(event: int, x: int, y: int, flags: int, param: object | None) -> None:
+            """Record the HSV color under a left-click and redraw the selection overlay.
+
+            Args:
+                event: OpenCV mouse event code (as an int).
+                x: x-coordinate of the click, in window pixels.
+                y: y-coordinate of the click, in window pixels.
+                flags: Which mouse buttons and modifier keys (Ctrl/Shift/Alt) were held during the event (unused).
+                param: User data from ``cv2.setMouseCallback`` (unused).
+            """
             if event == cv2.EVENT_LBUTTONDOWN:
                 if x < 0 or y < 0 or x >= image.shape[1] or y >= image.shape[0]:
                     logger.info(f"Clicked outside the image: ({x}, {y})")
@@ -51,11 +62,14 @@ class ColorPicker:
                 except Exception as e:
                     logger.warning(f"Error processing color at ({x}, {y}): {e}")
 
-        def redraw_image():
+        def redraw_image() -> None:
+            """Redraw the picker window with the current selections."""
             img_copy = image.copy()
             for point in points:
                 cv2.circle(img_copy, point, 5, (0, 255, 0), -1)
-                cv2.putText(img_copy, f"{point}", point, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+                cv2.putText(
+                    img_copy, f"{point}", point, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1
+                )
 
             # Create a display panel for selected colors
             color_panel_height = img_copy.shape[0]
@@ -70,17 +84,34 @@ class ColorPicker:
                 end_y = (i + 1) * (color_panel_height // 3)
                 color_panel[start_y:end_y, :] = bgr_color
 
-                cv2.putText(color_panel, labels[i], (10, start_y + 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                cv2.putText(
+                    color_panel,
+                    labels[i],
+                    (10, start_y + 30),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.7,
+                    (255, 255, 255),
+                    2,
+                )
 
             combined_image = np.hstack((img_copy, color_panel))
-            cv2.imshow("Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue", combined_image)
+            cv2.imshow(
+                "Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue",
+                combined_image,
+            )
 
-        cv2.imshow("Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue", image)
-        cv2.setMouseCallback("Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue", click_event)
+        cv2.imshow(
+            "Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue",
+            image,
+        )
+        cv2.setMouseCallback(
+            "Color Picking: Pick Huey color, front corner, then back corner. Press 'z' to cancel previous selection. Once 3 colors are selected, press anywhere on the screen to continue",
+            click_event,
+        )
 
         while True:
             key = cv2.waitKey(1) & 0xFF
-            
+
             if key == ord("z"):  # Undo last selection
                 if selected_colors and points:
                     removed_color = selected_colors.pop()
@@ -95,22 +126,21 @@ class ColorPicker:
                 selected_colors = []
                 return None
             elif len(selected_colors) == 4:
-                selected_colors = selected_colors[:len(selected_colors)-1]
+                selected_colors = selected_colors[: len(selected_colors) - 1]
                 logger.info(f"🎨 Final Selected Colors (HSV): {selected_colors}")
                 logger.info(f"📌 Final Selected Points: {points}")
                 break
 
         cv2.destroyAllWindows()
         return selected_colors
-    
+
     @staticmethod
-    def save_colors_to_file(colors, output_file):
-        """
-        Saves the selected colors to a text file in HSV format.
+    def save_colors_to_file(colors: list[np.ndarray], output_file: str) -> None:
+        """Saves the selected colors to a text file in HSV format.
 
         Args:
-            colors (list): List of HSV colors to be saved.
-            output_file (str): Path to the output file.
+            colors: List of HSV colors to be saved.
+            output_file: Path to the output file.
         """
         try:
             with open(output_file, "w") as file:
@@ -121,34 +151,48 @@ class ColorPicker:
             logger.warning(f"Error: Output file path '{output_file}' does not exist.")
         except Exception as e:
             logger.warning(f"Error saving colors to file: {e}")
-    
+
     @staticmethod
-    def make_new_colors(output_file_path, warped_frame):
+    def make_new_colors(output_file_path: str, warped_frame: np.ndarray) -> list[np.ndarray] | None:
+        """Pick colors interactively, save them to a file, and return them.
+
+        Args:
+            output_file_path: Path to write the colors file to, one "H, S, V" line per color.
+            warped_frame: Warped BGR arena frame to pick colors from.
+
+        Returns:
+            Three HSV colors (robot, front, back), each a uint8 array of [H, S, V]. Returns None if
+            the user cancels with Esc, or an empty list if no frame was given.
+        """
         selected_colors = ColorPicker.pick_colors(warped_frame)
         ColorPicker.save_colors_to_file(selected_colors, output_file_path)
         return selected_colors
 
-def display_colors(selected_colors):
-    """
-    Displays the selected colors as small colored blocks in a window.
+
+def display_colors(selected_colors: list) -> None:
+    """Displays the selected colors as colored blocks in the HUD.
 
     Args:
-        selected_colors (list): List of HSV colors.
+        selected_colors: HSV colors in robot, front, back order, each [H, S, V].
     """
     if not selected_colors:
         logger.info("No colors selected to display.")
         return
-    
+
     try:
         # Convert HSV colors to BGR and create a blank image to show them
-        bgr_colors = [cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_HSV2BGR)[0][0] for color in selected_colors]
+        bgr_colors = [
+            cv2.cvtColor(np.uint8([[color]]), cv2.COLOR_HSV2BGR)[0][0] for color in selected_colors
+        ]
 
         height = 175
         width = 175
-        img = np.zeros((height, width * len(bgr_colors), 3), dtype=np.uint8) # TODO: 4 color channels?
+        img = np.zeros(
+            (height, width * len(bgr_colors), 3), dtype=np.uint8
+        )  # TODO: 4 color channels?
 
         for idx, color in enumerate(bgr_colors):
-            img[:, idx * width:(idx + 1) * width] = color
+            img[:, idx * width : (idx + 1) * width] = color
 
             label = ""
             if idx == 0:
@@ -158,8 +202,16 @@ def display_colors(selected_colors):
             elif idx == 2:
                 label = "Back Corner"
 
-            cv2.putText(img, label, (idx * width + 10, height - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+            cv2.putText(
+                img,
+                label,
+                (idx * width + 10, height - 10),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                (255, 255, 255),
+                2,
+                cv2.LINE_AA,
+            )
 
         cv2.imshow("Selected Colors", img)
         cv2.waitKey(0)
