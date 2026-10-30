@@ -214,6 +214,38 @@ class Ram:
         self.left, self.right = left, right
         return {"left": self.left, "right": self.right, "speed": speed, "turn": turn}
 
+    # Returns the scalar radius (distance) between Huey and the enemy
+    def huey_enemy_radius(self):
+        return np.linalg.norm(self.enemy_position - self.huey_position)
+
+    # Returns the difference in angle between the direction huey is facing and the line from huey to the enemy
+    def huey_enemy_heading(self):
+
+        huey_radius = self.enemy_position - self.huey_position  # Vector between huey and enemy
+        radians_orie = np.radians(self.huey_orientation)
+        huey_orie_vector = np.array([np.cos(radians_orie), -1 * np.sin(radians_orie)])
+
+        radius_norm = huey_radius / np.linalg.norm(huey_radius)
+        orie_norm = huey_orie_vector / np.linalg.norm(huey_orie_vector)
+
+        # Alternatively: Theta-only
+        # orie_diff = np.rad2deg(np.arccos(orie_norm, radius_norm))
+        dot_prod = np.dot(radius_norm, orie_norm)  # [-1,1]
+
+        # return dot_product
+        return np.rad2deg(np.arccos(dot_prod))  # [0,180] deg
+
+    def hit_pred(self, thresholds: dict[str:float]):
+        rad_score = self.huey_enemy_radius() / 990  # Distance normalized (0 to 1)
+        heading_score = self.huey_enemy_heading() / 180  # Heading normalized (0 to 1)
+        hit_loss_score = rad_score * heading_score
+
+        return (
+            (rad_score < thresholds["rad"])
+            and (heading_score < thresholds["head"])
+            and (hit_loss_score < thresholds["loss"])
+        )
+
     def recovery_sequence(self) -> None:
         """Hard coded function to move Huey backwards, forward, left, then right for a ranodmly generated amount of time."""
         self.recovery_step += 1
