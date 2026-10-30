@@ -41,7 +41,7 @@ class IMU_sensor():
         self.errorCounter = 0
         self.goodTime = time.time()
         time.sleep(2)  # Wait for the serial connection to initialize
-        self.get_continuous_dict()
+        self.update_continuous_dict()
         self.cali_angle = 0
         self.cali_lock = threading.Lock()
 
@@ -91,7 +91,7 @@ class IMU_sensor():
 
         return port_dic[selection]
 
-    def get_dict(self):
+    def update_dict(self):
         """
         Updates dict field with the latest reading from the IMU
         Raises IMUReadError if there is an issue with reading from the IMU
@@ -104,7 +104,7 @@ class IMU_sensor():
         except json.decoder.JSONDecodeError as e:
             raise IMUReadError("IMU error: " + str(e))
  
-    def get_continuous_dict(self):
+    def update_continuous_dict(self):
         """
         Continuously updates dict field with the latest reading from the IMU in a separate thread
         Raises IMUReadError if there is an issue with reading from the IMU
@@ -193,7 +193,7 @@ class IMU_sensor():
         """
         Returns: -1 if bot is upside down and 1 if the bot is right side up
         """
-        self.get_dict()
+        self.update_dict()
         return 1 if self.dict["acc"]["z"] >= 0 else -1
 
     def get_yaw(self):
@@ -202,7 +202,7 @@ class IMU_sensor():
         Raises IMUReadError if there is an issue with reading from the IMU
         """
         # try to get a new reading for yaw
-        self.get_dict()
+        self.update_dict()
 
         _, _, yaw = self.quaternion_to_euler(self.dict["rot"]["r"], self.dict["rot"]["i"], self.dict["rot"]["j"], self.dict["rot"]["k"])       
         self.yaw = (yaw / math.pi) * 180
