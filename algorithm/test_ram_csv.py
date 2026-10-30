@@ -134,8 +134,7 @@ def test_file_update(
         angle: Error angle to the enemy.
         direction: Arena-edge escape direction.
     """
-    # 'time', 'delta_time', 'bots', 'huey_pos', 'huey_facing', 'enemy_pos', 'huey_old_pos', 'huey_velocity', 'enemy_old_pos[-1]'
-    #       , 'enemy_velocity', 'speed', 'turn', 'left_speed', 'right_speed'
+
     if fpath is None:
         test_file_init()
 

@@ -1,6 +1,7 @@
-"""DEPRECATED: This is not part of the main loop, and is for visualization purposes.
-
+"""
 Script to visualize RamRam data: orientation, speed, etc.
+This is not part of the main loop, and is for visualization purposes.
+
 """
 
 import matplotlib.pyplot as plt

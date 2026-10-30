@@ -215,7 +215,7 @@ class Ram:
         return {"left": self.left, "right": self.right, "speed": speed, "turn": turn}
 
     def recovery_sequence(self) -> None:
-        """Hard coded function to move Huey backwards, forward, left, then right."""
+        """Hard coded function to move Huey backwards, forward, left, then right for a ranodmly generated amount of time."""
         self.recovery_step += 1
         duration = random.uniform(0.35, 0.6)
         self.recovering_until = time.time() + duration
