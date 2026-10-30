@@ -47,16 +47,17 @@ MODE = "video"
 # MODE = "custom"
 
 # Core behavior
+
+SEGMENT = True  # Set to True to use segmentation model instead of detection model
 WARP_AND_COLOR_PICKING = True
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
-BLACKOUT = True # Segmentation models "blackout" by default, so always keep false with segmentation.
+BLACKOUT = True and not SEGMENT # Segmentation models "blackout" by default, so always keep false with segmentation.
 COLOR_QUANTIZATION = True  # Should almost always stay True
 CAMERA_STREAM = False     # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
 USE_TRACKING = True       # Use tracking-based predictor instead of running detection on every frame (requires more resources)
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
-SEGMENT = False  # Set to True to use segmentation model instead of detection model
 
 # Logging / debug outputs
 SHEET_RUNTIME = True
@@ -80,9 +81,9 @@ FRAME_RATE = 120
 
 # Model selection
 # MODEL_NAME = "SmallComp"       # Best accuracy if compute allows
-MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
+# MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
 # MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
-# MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
+MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
 OD_IMG_SIZE = 640                # Must be multiple of 32, avoid below 320
 
 if MODE == "comp" or MODE == "live":
@@ -93,7 +94,6 @@ if MODE == "comp" or MODE == "live":
 
     if MODE == "comp":
         WEAPON_ON = True   
-
     else: # MODE == "live"
         WEAPON_ON = False
 
@@ -116,8 +116,9 @@ else:
 folder = os.getcwd() + "/main_files"
 # Video options (uncomment one for MODE = "video")
 # camera_number = folder + "/test_videos/crude_rot_huey.mp4"
-# camera_number = folder + "/test_videos/huey_vs_prince.mp4"
-camera_number = folder + "/test_videos/shorty_vs_prince.mp4"
+camera_number = folder + "/test_videos/huey_vs_prince.mp4"
+# camera_number = folder + "/test_videos/shorty_vs_prince.mp4"
+# camera_number = folder + "/test_videos/blink224_huey.mp4"
 # camera_number = folder + "/test_videos/huey_hell.mp4"
 # camera_number = folder + "/test_videos/huey_in_n_out.mp4"
 # camera_number = folder + "/test_videos/cicero_corners_bzone.mov"
@@ -434,7 +435,29 @@ def main():
                     with rs.log_timing("Algorithm"):
                         move_dictionary = algorithm.ram_ram(
                             detected_bots_with_data, CAN_RECOVER, fps=FRAME_RATE, key=key)
-                        
+
+                        heading = algorithm.huey_enemy_heading()/180
+                        radius = algorithm.huey_enemy_radius()/990
+                        hit_loss = heading * radius
+                        thresholds = {
+                            "rad": 0.15,
+                            "head": 0.30,
+                            "loss": 0.05
+                        }
+                        hit_incoming = algorithm.hit_pred(thresholds)
+
+                        logger.debug(f"Heading 🫪 {heading}")
+                        logger.debug(f"Radius ⚾️ {radius}")
+                        logger.debug(f"Score 🦋 {hit_loss}")
+                        logger.debug(f"Hit Incoming? 💥 {hit_incoming}")
+                        # cv2.putText(warped_frame, f"Head: {heading}", (550, 100),
+                        #                     cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
+                        # cv2.putText(warped_frame, f"Rad: {radius}", (550, 200),
+                        #                                             cv2.FONT_HERSHEY_SIMPLEX, 0.69, (0, 255, 255), 2)
+                        # cv2.putText(warped_frame, f"Loss: {hit_loss}", (550, 300),
+                        #                                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
+                        # cv2.putText(warped_frame, f"Hit?: {hit_incoming}", (550, 400),
+                        #                                                                                             cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
 
                     # 14. Transmitting the motor values to Huey's if we're using a live video
                     with rs.log_timing("Transmission"):
@@ -565,7 +588,7 @@ def main():
     except KeyboardInterrupt:
         logger.warning("KEYBOARD INTERRUPT CLEAN UP")
     except Exception as exception:
-        logger.warning("UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP:" + exception)
+        logger.warning(f"UNKNOWN EXCEPTION FAILURE. PROCEEDING TO CLEAN UP: {exception}")
     finally:
 
         # Newbie squadron trial
