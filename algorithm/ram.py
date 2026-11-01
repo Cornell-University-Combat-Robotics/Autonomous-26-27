@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class Ram():
     # ----------------------------- CONSTANTS -----------------------------
+    HIT_PRED_BUFFER = 10 # how many previous Huey hit preds we are recording 
     HISTORY_BUFFER = 20  # how many previous Huey or enemy position we are recording
     DANGER_ZONE = 55  # TODO: for smarter algo
     MAX_SPEED = 1  # magnitude between 0 and 1
@@ -101,6 +102,9 @@ class Ram():
 
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
+
+        self.huey_prev_hit_preds = [] # booleans for hit pred results
+        self.huey_hit_pred = False
 
         # old time
         self.old_time = time.time()
@@ -187,7 +191,9 @@ class Ram():
         heading_score = self.huey_enemy_heading()/180 # Heading normalized (0 to 1)
         hit_loss_score = rad_score * heading_score
 
-        return (rad_score < thresholds["rad"]) and (heading_score < thresholds["head"]) and (hit_loss_score < thresholds["loss"])
+        self.huey_hit_pred = (rad_score < thresholds["rad"]) and (heading_score < thresholds["head"]) and (hit_loss_score < thresholds["loss"])
+
+        return self.huey_hit_pred
 
     def recovery_sequence(self):
         self.recovery_step += 1
@@ -372,6 +378,9 @@ class Ram():
         if self.huey_pos_count % 1 == 0:
             self.huey_previous_positions.append(self.huey_position)
             self.huey_previous_orientations.append(self.huey_orientation)
+
+        # Update hit_pred backlog
+        self.huey_prev_hit_preds.append(self.huey_hit_pred)
 
             # logger.debug(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
         self.huey_pos_count += 1

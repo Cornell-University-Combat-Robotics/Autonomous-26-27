@@ -436,28 +436,31 @@ def main():
                         move_dictionary = algorithm.ram_ram(
                             detected_bots_with_data, CAN_RECOVER, fps=FRAME_RATE, key=key)
 
+                        # Just for display
                         heading = algorithm.huey_enemy_heading()/180
                         radius = algorithm.huey_enemy_radius()/990
                         hit_loss = heading * radius
+
                         thresholds = {
                             "rad": 0.15,
                             "head": 0.30,
                             "loss": 0.05
                         }
                         hit_incoming = algorithm.hit_pred(thresholds)
+                        hit_color = (0, 255, 0) if hit_incoming else (0, 0, 255)
 
                         logger.debug(f"Heading 🫪 {heading}")
                         logger.debug(f"Radius ⚾️ {radius}")
                         logger.debug(f"Score 🦋 {hit_loss}")
                         logger.debug(f"Hit Incoming? 💥 {hit_incoming}")
-                        # cv2.putText(warped_frame, f"Head: {heading}", (550, 100),
-                        #                     cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
-                        # cv2.putText(warped_frame, f"Rad: {radius}", (550, 200),
-                        #                                             cv2.FONT_HERSHEY_SIMPLEX, 0.69, (0, 255, 255), 2)
-                        # cv2.putText(warped_frame, f"Loss: {hit_loss}", (550, 300),
-                        #                                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
-                        # cv2.putText(warped_frame, f"Hit?: {hit_incoming}", (550, 400),
-                        #                                                                                             cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
+                        cv2.putText(warped_frame, f"Head: {heading}", (550, 100),
+                                            cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
+                        cv2.putText(warped_frame, f"Rad: {radius}", (550, 200),
+                                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.69, (0, 255, 255), 2)
+                        cv2.putText(warped_frame, f"Loss: {hit_loss}", (550, 300),
+                                                                                            cv2.FONT_HERSHEY_SIMPLEX, 0.69, (244, 255, 255), 2)
+                        cv2.putText(warped_frame, f"Hit?: {hit_incoming}", (550, 400),
+                                                                                                                    cv2.FONT_HERSHEY_SIMPLEX, 0.69, hit_color, 2)
 
                     # 14. Transmitting the motor values to Huey's if we're using a live video
                     with rs.log_timing("Transmission"):
