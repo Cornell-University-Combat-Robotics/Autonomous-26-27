@@ -1,3 +1,9 @@
+# General
+kernel.errors.txt
+color_output.csv
+main_files/homography_matrix.txt
+main_files/selected_colors.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
