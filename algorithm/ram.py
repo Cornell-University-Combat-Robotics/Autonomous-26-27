@@ -214,13 +214,20 @@ class Ram:
         self.left, self.right = left, right
         return {"left": self.left, "right": self.right, "speed": speed, "turn": turn}
 
-    # Returns the scalar radius (distance) between Huey and the enemy
     def huey_enemy_radius(self):
+        """Returns straight line distance between bot and enemy.
+        
+        Returns:
+            Float of straight line distance between bot and enemy
+        """
         return np.linalg.norm(self.enemy_position - self.huey_position)
 
-    # Returns the difference in angle between the direction huey is facing and the line from huey to the enemy
     def huey_enemy_heading(self):
-
+        """Returns the difference in angle between the direction bot is facing and the line from bot to the enemy.
+        
+        Returns:
+            Returns the difference in angle between the direction bot is facing and the line from bot to the enemy.
+        """
         huey_radius = self.enemy_position - self.huey_position  # Vector between huey and enemy
         radians_orie = np.radians(self.huey_orientation)
         huey_orie_vector = np.array([np.cos(radians_orie), -1 * np.sin(radians_orie)])
@@ -235,7 +242,15 @@ class Ram:
         # return dot_product
         return np.rad2deg(np.arccos(dot_prod))  # [0,180] deg
 
-    def hit_pred(self, thresholds: dict[str:float]):
+    def hit_pred(self, thresholds: dict[str:float]) -> bool:
+        """Returns if a hit is expected in the near future.
+
+        Args:
+            thresholds: dict of thresholds for predicting hits
+
+        Returns:
+            bool: True if a hit is expected and false otherwise
+        """
         rad_score = self.huey_enemy_radius() / 990  # Distance normalized (0 to 1)
         heading_score = self.huey_enemy_heading() / 180  # Heading normalized (0 to 1)
         hit_loss_score = rad_score * heading_score
