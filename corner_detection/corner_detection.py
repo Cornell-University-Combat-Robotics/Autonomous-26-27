@@ -100,7 +100,7 @@ class RobotCornerDetection:
             return None
     
     def four_good(self, tolerance=5): 
-        logger.info("entered four good")
+        # logger.info("entered four good")
         for j in range(0, 2):
             for i in range(0,2):
                 same_color_side = self.centroids[j][(i+1)%2] - self.centroids[j][i] 
@@ -118,7 +118,7 @@ class RobotCornerDetection:
 
                 angle = np.acos(np.dot(same_color_side, other_color_side)/(mag_same*mag_opp))*180/math.pi
 
-                logger.debug(f"Angle 📐📐📐: {angle}")
+                # logger.debug(f"Angle 📐📐📐: {angle}")
                 if (90 + tolerance < angle or 90 - tolerance > angle):
                     return 0
         return 1
@@ -127,7 +127,7 @@ class RobotCornerDetection:
         """
         Returns 1 if the two corners weren't diagonal and 0 otherwise.
         """
-        logger.debug("entered non diag good")
+        # logger.debug("entered non diag good")
 
         if (len(self.centroids[0]) == 2 or len(self.centroids[1]) == 2) and (is_flipped == -1):
             return 0
@@ -135,7 +135,7 @@ class RobotCornerDetection:
             return int(is_not_diagonal)
     
     def confidence(self, corners, is_not_diagonal, high_overlap, is_flipped, tolerance=15):
-        logger.debug("entered conf")
+        # logger.debug("entered conf")
         if high_overlap:
             return 0
         elif (corners == 4 or corners == 3) and self.four_good(tolerance):
@@ -227,12 +227,12 @@ class RobotCornerDetection:
 
                 elif (len(centroid_points[0]) + len(centroid_points[1]) < 2):
 
-                    logger.debug("Less than 2 corners found")
+                    # logger.debug("Less than 2 corners found")
                     self.is_diagonal = False
                     conf = 0
                     return {"huey": huey, "enemy": enemy_bots}, conf
                 
-                logger.debug("FOURNER4️⃣")
+                # logger.debug("FOURNER4️⃣")
                 if not self.corner_method == 3:
                     self.corner_method = 4
 

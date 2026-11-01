@@ -96,8 +96,8 @@ class ColorPicker:
                 return None
             elif len(selected_colors) == 4:
                 selected_colors = selected_colors[:len(selected_colors)-1]
-                logger.info("🎨 Final Selected Colors (HSV):", selected_colors)
-                logger.info("📌 Final Selected Points:", points)
+                # logger.info("🎨 Final Selected Colors (HSV):", selected_colors)
+                # logger.info("📌 Final Selected Points:", points)
                 break
 
         cv2.destroyAllWindows()

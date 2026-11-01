@@ -81,7 +81,7 @@ def find_our_bot(self, images: list[np.ndarray], bot_color_hsv, threshold_set=Tr
 
         for image in images: # this for loop handles whether the image is the huey bot
             if image is None:
-                logger.info("Warning: One of the images is None, skipping...")
+                # logger.info("Warning: One of the images is None, skipping...")
                 continue
             
             color_pixel_count = find_bot_color_pixels(image, bot_color_hsv)
@@ -112,7 +112,7 @@ def find_our_bot(self, images: list[np.ndarray], bot_color_hsv, threshold_set=Tr
 def dynamic_threshold(self, threshold_set, bot_color_percentages):
     # Case 1: Setting the initial threshold 
     if not threshold_set:
-        logger.debug("case 1")
+        # logger.debug("case 1")
         # Case 1.1: If we see 2 or more robots
         if len(bot_color_percentages) > 1 and bot_color_percentages[-1] > 0:
             huey_color_percentage = bot_color_percentages[-1]
@@ -331,7 +331,7 @@ def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagon
         else:
             
             if not IS_VALID_ORIE: # take midorie
-                logger.debug(f"💀MIDORIE")
+                # logger.debug(f"💀MIDORIE")
                 length = front_points[0][1] - back_points[0][1] # front[0][1] should be y coords,
                 width = front_points[0][0] - back_points[0][0]
                 hypotenuse = math.sqrt(math.pow(length, 2) + math.pow(width, 2))
@@ -340,7 +340,7 @@ def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagon
             else: 
                 p1 = (angle + 45) % 360
                 p2 = (angle - 45) % 360
-                logger.debug(f"🌈🌈🌈CORNERS ON DIFFERENT SIDE: {p1} or {p2} degrees🌈🌈🌈")
+                # logger.debug(f"🌈🌈🌈CORNERS ON DIFFERENT SIDE: {p1} or {p2} degrees🌈🌈🌈")
                 return pick_closest_angle(p1, p2, previous_orientation), False
 
     raise ValueError(f"Invalid point configuration: Front={len(front_points)}, Back={len(back_points)}")
@@ -581,7 +581,7 @@ def compute_blackout_box(image, huey_bbox, enemy_bbox, thresh = BLACKOUT_THRESHO
     
     # Check on whether we should blackout at all
     if int_area > huey_area * thresh:
-        logger.info("BLACKOUT IS HIGHER THAN 40%")
+        # logger.info("BLACKOUT IS HIGHER THAN 40%")
         return image, True
 
     # Arena to bbox cords

@@ -60,7 +60,7 @@ USE_TRACKING = True       # Use tracking-based predictor instead of running dete
 DETECTION_CONFIDENCE = 0.25  # Ultralytics default is 0.25; Try lower values
 
 # Logging / debug outputs
-SHEET_RUNTIME = True
+SHEET_RUNTIME = False
 rs = RuntimeSheet(use=SHEET_RUNTIME)
 
 # Display toggles
@@ -401,7 +401,7 @@ def main():
                             # logger.info(q)
                             if total_sensor_val <= 400: 
                                 if detected_bots_with_data and detected_bots_with_data.get("huey"):
-                                    logger.info(f"DETECTED BOTS WITH DATA {detected_bots_with_data.get('huey')}")
+                                    # logger.info(f"DETECTED BOTS WITH DATA {detected_bots_with_data.get('huey')}")
                                     if (detected_bots_with_data.get("huey").get("orientation") is not None) and confidence:
                                         #logger.info(f"before cali yaw: {cali_yaw} and {detected_bots_with_data.get("huey").get("orientation")}")
                                         imu_sensor.calibrate_yaw(detected_bots_with_data.get("huey").get("orientation"), cali_yaw)
@@ -446,10 +446,10 @@ def main():
                         }
                         hit_incoming = algorithm.hit_pred(thresholds)
 
-                        logger.debug(f"Heading 🫪 {heading}")
-                        logger.debug(f"Radius ⚾️ {radius}")
-                        logger.debug(f"Score 🦋 {hit_loss}")
-                        logger.debug(f"Hit Incoming? 💥 {hit_incoming}")
+                        # logger.debug(f"Heading 🫪 {heading}")
+                        # logger.debug(f"Radius ⚾️ {radius}")
+                        # logger.debug(f"Score 🦋 {hit_loss}")
+                        # logger.debug(f"Hit Incoming? 💥 {hit_incoming}")
                         # cv2.putText(warped_frame, f"Head: {heading}", (550, 100),
                         #                     cv2.FONT_HERSHEY_SIMPLEX, 0.67, (0, 0, 255), 2)
                         # cv2.putText(warped_frame, f"Rad: {radius}", (550, 200),
