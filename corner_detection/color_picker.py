@@ -132,16 +132,16 @@ def save_colors_to_file(colors: list[np.ndarray], output_file: str) -> None:
         Args:
             colors: List of HSV colors to be saved.
             output_file: Path to the output file.
-        """
-        try:
-            with open(output_file, "w") as file:
-                for color in colors:
-                    file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-            logger.info(f"Selected colors have been saved to '{output_file}'.")
-        except FileNotFoundError:
-            logger.warning(f"Error: Output file path '{output_file}' does not exist.")
-        except Exception as e:
-            logger.warning(f"Error saving colors to file: {e}")
+    """
+    try:
+        with open(output_file, "w") as file:
+            for color in colors:
+                file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+        logger.info(f"Selected colors have been saved to '{output_file}'.")
+    except FileNotFoundError:
+        logger.warning(f"Error: Output file path '{output_file}' does not exist.")
+    except Exception as e:
+        logger.warning(f"Error saving colors to file: {e}")
 
 def display_colors(selected_colors: list[np.ndarray]) -> None:
     """
