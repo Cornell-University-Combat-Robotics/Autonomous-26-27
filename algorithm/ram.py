@@ -402,6 +402,11 @@ class Ram():
             self.enemy_previous_positions = self.enemy_previous_positions[int(
                 len(self.enemy_previous_positions)-self.HISTORY_BUFFER):]
 
+        if len(self.huey_prev_hit_preds) > self.HIT_PRED_BUFFER:
+            self.huey_prev_hit_preds = self.huey_prev_hit_preds[int(
+                len(self.huey_prev_hit_preds)-self.HIT_PRED_BUFFER):]
+            logger.info(f"huey_prev_hit: {self.huey_prev_hit_preds}")
+
         if (bots and bots["huey"] and len(bots["huey"]) > 0):
             self.huey_position = np.array(bots['huey'].get('center'))
             self.huey_previous_positions.append(self.huey_position)
