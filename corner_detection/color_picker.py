@@ -1,8 +1,11 @@
+"""Interactive HSV color picker for Huey's body and corner colors."""
+
 import cv2
 import numpy as np
 import os
 import logging
 import logging_config.logging_config 
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -12,16 +15,17 @@ class ColorPicker:
     """
 
     @staticmethod
-    def pick_colors(image):
+    def pick_colors(image: np.ndarray | None) -> list[np.ndarray] | None:
         """
         Allows the user to manually pick colors for the robot and the front and back corners.
         The user selects the robot's color first, followed by the front and back corners.
 
         Args:
-            image (str): The image to pick colors from.
+            image (np.ndarray | None): The BGR image to pick colors from.
 
         Returns:
-            list: Selected colors for the robot, front corner, and back corner in HSV format.
+            list[np.ndarray] | None: Selected colors for the robot, front corner, and back corner
+                in HSV format. Empty if `image` is None, or None if the user cancels with `Esc`.
         """
         try:
             if image is None:
@@ -33,7 +37,7 @@ class ColorPicker:
         selected_colors = []
         points = []
 
-        def click_event(event, x, y, flags, param):
+        def click_event(event: int, x: int, y: int, flags: int, param: Any) -> None:
             if event == cv2.EVENT_LBUTTONDOWN:
                 if x < 0 or y < 0 or x >= image.shape[1] or y >= image.shape[0]:
                     logger.info(f"Clicked outside the image: ({x}, {y})")
@@ -51,7 +55,7 @@ class ColorPicker:
                 except Exception as e:
                     logger.warning(f"Error processing color at ({x}, {y}): {e}")
 
-        def redraw_image():
+        def redraw_image() -> None:
             img_copy = image.copy()
             for point in points:
                 cv2.circle(img_copy, point, 5, (0, 255, 0), -1)
@@ -103,7 +107,7 @@ class ColorPicker:
         cv2.destroyAllWindows()
         return selected_colors
 
-def save_colors_to_file(colors, output_file):
+def save_colors_to_file(colors: list[np.ndarray], output_file: str) -> None:
     """
     Saves the selected colors to a text file in HSV format.
 
@@ -121,7 +125,7 @@ def save_colors_to_file(colors, output_file):
     except Exception as e:
         logger.warning(f"Error saving colors to file: {e}")
 
-def display_colors(selected_colors):
+def display_colors(selected_colors: list[np.ndarray]) -> None:
     """
     Displays the selected colors as small colored blocks in a window.
 
