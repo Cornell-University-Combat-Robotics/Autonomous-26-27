@@ -1,9 +1,11 @@
-"""This file contains the methods to pick colors."""
-
-import logging
+"""Interactive HSV color picker for Huey's body and corner colors."""
 
 import cv2
 import numpy as np
+import os
+import logging
+import logging_config.logging_config 
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -12,18 +14,17 @@ class ColorPicker:
     """A class for manually picking colors from an image."""
 
     @staticmethod
-    def pick_colors(image: np.ndarray) -> list[np.ndarray] | None:
-        """Let the user click to pick the robot, front-corner, and back-corner colors.
-
-        Click the robot first, then the front corner, then the back corner. Press 'z' to undo the
-        last pick. After third click, one more is required to confirm. Press Esc to cancel.
+    def pick_colors(image: np.ndarray | None) -> list[np.ndarray] | None:
+        """
+        Allows the user to manually pick colors for the robot and the front and back corners.
+        The user selects the robot's color first, followed by the front and back corners.
 
         Args:
-            image: BGR image to pick colors from, e.g. a warped arena frame.
+            image (np.ndarray | None): The BGR image to pick colors from.
 
         Returns:
-            Three HSV colors (robot, front, back), each a uint8 array of [H, S, V]. Returns None if
-            the user cancels with Esc, or an empty list if no image was given.
+            list[np.ndarray] | None: Selected colors for the robot, front corner, and back corner
+                in HSV format. Empty if `image` is None, or None if the user cancels with `Esc`.
         """
         try:
             if image is None:
@@ -35,16 +36,7 @@ class ColorPicker:
         selected_colors = []
         points = []
 
-        def click_event(event: int, x: int, y: int, flags: int, param: object | None) -> None:
-            """Record the HSV color under a left-click and redraw the selection overlay.
-
-            Args:
-                event: OpenCV mouse event code (as an int).
-                x: x-coordinate of the click, in window pixels.
-                y: y-coordinate of the click, in window pixels.
-                flags: Which mouse buttons and modifier keys (Ctrl/Shift/Alt) were held during the event (unused).
-                param: User data from ``cv2.setMouseCallback`` (unused).
-            """
+        def click_event(event: int, x: int, y: int, flags: int, param: Any) -> None:
             if event == cv2.EVENT_LBUTTONDOWN:
                 if x < 0 or y < 0 or x >= image.shape[1] or y >= image.shape[0]:
                     logger.info(f"Clicked outside the image: ({x}, {y})")
@@ -63,7 +55,6 @@ class ColorPicker:
                     logger.warning(f"Error processing color at ({x}, {y}): {e}")
 
         def redraw_image() -> None:
-            """Redraw the picker window with the current selections."""
             img_copy = image.copy()
             for point in points:
                 cv2.circle(img_copy, point, 5, (0, 255, 0), -1)
@@ -134,43 +125,27 @@ class ColorPicker:
         cv2.destroyAllWindows()
         return selected_colors
 
-    @staticmethod
-    def save_colors_to_file(colors: list[np.ndarray], output_file: str) -> None:
-        """Saves the selected colors to a text file in HSV format.
+def save_colors_to_file(colors: list[np.ndarray], output_file: str) -> None:
+    """
+    Saves the selected colors to a text file in HSV format.
 
         Args:
             colors: List of HSV colors to be saved.
             output_file: Path to the output file.
-        """
-        try:
-            with open(output_file, "w") as file:
-                for color in colors:
-                    file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-            logger.info(f"Selected colors have been saved to '{output_file}'.")
-        except FileNotFoundError:
-            logger.warning(f"Error: Output file path '{output_file}' does not exist.")
-        except Exception as e:
-            logger.warning(f"Error saving colors to file: {e}")
+    """
+    try:
+        with open(output_file, "w") as file:
+            for color in colors:
+                file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+        logger.info(f"Selected colors have been saved to '{output_file}'.")
+    except FileNotFoundError:
+        logger.warning(f"Error: Output file path '{output_file}' does not exist.")
+    except Exception as e:
+        logger.warning(f"Error saving colors to file: {e}")
 
-    @staticmethod
-    def make_new_colors(output_file_path: str, warped_frame: np.ndarray) -> list[np.ndarray] | None:
-        """Pick colors interactively, save them to a file, and return them.
-
-        Args:
-            output_file_path: Path to write the colors file to, one "H, S, V" line per color.
-            warped_frame: Warped BGR arena frame to pick colors from.
-
-        Returns:
-            Three HSV colors (robot, front, back), each a uint8 array of [H, S, V]. Returns None if
-            the user cancels with Esc, or an empty list if no frame was given.
-        """
-        selected_colors = ColorPicker.pick_colors(warped_frame)
-        ColorPicker.save_colors_to_file(selected_colors, output_file_path)
-        return selected_colors
-
-
-def display_colors(selected_colors: list) -> None:
-    """Displays the selected colors as colored blocks in the HUD.
+def display_colors(selected_colors: list[np.ndarray]) -> None:
+    """
+    Displays the selected colors as small colored blocks in a window.
 
     Args:
         selected_colors: HSV colors in robot, front, back order, each [H, S, V].

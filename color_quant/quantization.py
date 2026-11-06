@@ -1,51 +1,44 @@
+"""Takes in robot image, and turns every bixel in it to one of our colors."""
+
 import cv2
+from typing import List
 import numpy as np
 from corner_detection.color_picker import ColorPicker
 import time
 import logging
-import logging_config.logging_config 
+import logging_config.logging_config
 
 logger = logging.getLogger(__name__)
 
-"""
-    Takes in BGR image, converts to Lab, then snaps colors to color picker, 
-    and makes other pixels either unchanged or black. Converts back to BGR, 
-    and returns.
 
-    Parameters
-    ----------
-    img_bgr : np.ndarray
-        HxWx3 uint8 OpenCV image in BGR.
-    robot_colors_bgr : np.ndarray
-        Nx3 uint8 array of BGR robot colors (e.g. N = 3 or 4).
-    thresh_lab : float
-        Distance threshold in Lab space for snapping to robot colors.
-    keep_background : bool
-        If True: pixels not close to any robot color stay as in the original image.
-        If False: pixels not close to any robot color become black.
-
-    Returns
-    -------
-    out_img : np.ndarray
-        Quantized image in BGR.
-    palette_bgr : np.ndarray
-        The robot colors used (same as robot_colors_bgr, cast to uint8).
-    """
 def quantize_robot_colors(
-    img_bgr,
-    robot_colors_bgr,
-    thresh_lab=25.0,
-    keep_background=True,
-    show = False,
-    custom_weights = None,
-):
+    img_bgr: np.ndarray,
+    robot_colors_bgr: np.ndarray,
+    thresh_lab: float = 25.0,
+    keep_background: bool = True,
+    show: bool = False,
+    custom_weights: List[float] = None,
+) -> np.ndarray:
+    """Takes in BGR image, converts to Lab, then snaps colors to color picker, and makes other pixels either unchanged or black. Converts back to BGR, and returns.
+
+    Args:
+        img_bgr : HxWx3 uint8 OpenCV image in BGR.
+        robot_colors_bgr : Nx3 uint8 array of BGR robot colors (e.g. N = 3 or 4).
+        thresh_lab : Distance threshold in Lab space for snapping to robot colors.
+        keep_background : If True: pixels not close to any robot color stay as in the original image. If False: pixels not close to any robot color become black.
+        show : If True displays the quantized image in a new cv2 window
+        custom_weights : Optional [L, a, b] weights for each Lab channel in the color distance (larger = that channel matters more). If None, defaults to [0.05, 1.0, 1.0], which mostly ignores brightness.
+
+    Returns:
+        out_img : Quantized image in BGR.
+    """
     H, W = img_bgr.shape[:2]
     N = H * W
-    
-    #OG Goat params from Ryan Tuning, best for Huey v Prince
+
+    # OG Goat params from Ryan Tuning, best for Huey v Prince
     # thresh_lab = 24.725 #Ryan god tuning
     # weights = np.array([0.171, 0.3777, 0.669], dtype=np.float32) # Ryan god tuning
-    
+
     # Define weights for L, a, and b
     # Setting L_weight to 0.0 ignores brightness entirely.
     # Setting it to 0.2 makes it matter, but much less than color.
@@ -54,7 +47,7 @@ def quantize_robot_colors(
     if custom_weights:
         L_weight = custom_weights[0]
         weights = np.array(custom_weights, dtype=np.float32)
-    
+
     # Convert image to Lab
     img_lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB)
     flat_lab = img_lab.reshape(-1, 3).astype(np.float32)  # (N, 3)
@@ -70,14 +63,14 @@ def quantize_robot_colors(
 
     # Start with first color (weighted)
     diff0 = (flat - robot_lab[0]) * weights
-    min_dist2 = np.sum(diff0 ** 2, axis=1)
+    min_dist2 = np.sum(diff0**2, axis=1)
     min_idx = np.zeros_like(min_dist2, dtype=np.int32)
 
     # Compare with remaining robot colors (weighted)
     for i in range(1, robot_lab.shape[0]):
         diff = (flat - robot_lab[i]) * weights
-        d = np.sum(diff ** 2, axis=1)
-        
+        d = np.sum(diff**2, axis=1)
+
         mask = d < min_dist2
         min_dist2[mask] = d[mask]
         min_idx[mask] = i
@@ -110,21 +103,20 @@ def quantize_robot_colors(
     robot_colors_bgr = robot_colors_bgr.astype(np.uint8)
     flat_out[mask_robot] = robot_colors_bgr[min_idx[mask_robot]]
     if show:
-        out_img = cv2.resize(out_img,None, fx=3.0,fy=3.0,interpolation=cv2.INTER_CUBIC)
+        out_img = cv2.resize(out_img, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
         cv2.imshow("Quantized Image", out_img)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     return out_img
 
 
-
 if __name__ == "__main__":
     dummy = np.zeros((8, 8, 3), dtype=np.uint8)
     _ = cv2.cvtColor(dummy, cv2.COLOR_BGR2LAB)
     _ = cv2.cvtColor(dummy, cv2.COLOR_BGR2HSV)
-    
+
     img = cv2.imread("quantization/test_files/test3.png")
-    img = cv2.resize(img,None, fx = 3.0, fy=3.0,interpolation=cv2.INTER_CUBIC)
+    img = cv2.resize(img, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
     # Pick colors (HSV) using your ColorPicker
     color_picker = ColorPicker
     colors_hsv = np.array(color_picker.pick_colors(img), dtype=np.uint8)
@@ -140,13 +132,7 @@ if __name__ == "__main__":
 
     # outer timing for whole call
     start_time = time.time()
-    out_img = quantize_robot_colors(
-        img,
-        bgr_colors,
-        thresh_lab=35,
-        keep_background=True,
-        show=True
-    )
+    out_img = quantize_robot_colors(img, bgr_colors, thresh_lab=35, keep_background=True, show=True)
     total_time_ms = (time.time() - start_time) * 1000.0
     logger.info(f"Total quantize_robot_colors call (outer): {total_time_ms:.3f} ms")
 
