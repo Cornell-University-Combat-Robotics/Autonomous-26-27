@@ -441,12 +441,7 @@ def main():
                         radius = algorithm.huey_enemy_radius()/990
                         hit_loss = heading * radius
 
-                        thresholds = {
-                            "rad": 0.15,
-                            "head": 0.30,
-                            "loss": 0.05
-                        }
-                        hit_incoming = algorithm.hit_pred(thresholds)
+                        hit_incoming = algorithm.huey_smooth_hit_pred
                         hit_color = (0, 255, 0) if hit_incoming else (0, 0, 255)
 
                         logger.debug(f"Heading 🫪 {heading}")

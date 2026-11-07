@@ -45,6 +45,12 @@ class Ram():
     RECOVERY_SPEED_VALUES = [
         BACK_UP_SPEED * 0.8, LEFT_SPEED * 0.8, RIGHT_SPEED * 0.8, FORWARD_SPEED * 0.8]
     RECOVERY_TURN_VALUES = [BACK_UP_TURN, LEFT_TURN, RIGHT_TURN, FORWARD_TURN]
+    HIT_THRESHOLDS = {
+                        "rad": 0.15,
+                        "head": 0.30,
+                        "loss": 0.05
+                    }
+    HIT_PRED_MIN = 3
     USE_PID = True
     is_recovering = False
     is_backing = False
@@ -52,6 +58,7 @@ class Ram():
     recovery_step = 0
     against_wall = ""
     moving_forward = -1
+    
 
     def __init__(self, bots=None, huey_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])), huey_old_position=(np.array([ARENA_WIDTH, ARENA_WIDTH])),
                  huey_orientation=45, enemy_position=np.array([0, 0]), huey_old_turn=0, huey_old_speed=0, is_recovering=False) -> None:
@@ -79,6 +86,7 @@ class Ram():
                 bots, self.ARENA_WIDTH, is_pos=False, is_huey=True)
             self.enemy_position = init_values(
                 bots, self.ARENA_WIDTH, is_pos=True, is_huey=False)
+                
             if bots["huey"] and len(bots["huey"]) > 0:
                 self.huey_girth = (math.dist(bots['huey'].get('bbox')[
                                    1], bots['huey'].get('bbox')[0]))/2
@@ -105,6 +113,7 @@ class Ram():
 
         self.huey_prev_hit_preds = [] # booleans for hit pred results
         self.huey_hit_pred = False
+        self.huey_smooth_hit_pred = False
 
         # old time
         self.old_time = time.time()
@@ -191,9 +200,18 @@ class Ram():
         heading_score = self.huey_enemy_heading()/180 # Heading normalized (0 to 1)
         hit_loss_score = rad_score * heading_score
 
+        # Additional Potential Features
+        
+
         self.huey_hit_pred = (rad_score < thresholds["rad"]) and (heading_score < thresholds["head"]) and (hit_loss_score < thresholds["loss"])
 
-        return self.huey_hit_pred
+        # Wholistic
+        # self.huey_smooth_hit_pred = np.all(self.huey_prev_hit_preds)
+
+        # Extended window, HIT_PRED_MIN Trues
+        self.huey_smooth_hit_pred = np.sum(self.huey_prev_hit_preds) >= self.HIT_PRED_MIN
+
+        return self.huey_smooth_hit_pred
 
     def recovery_sequence(self):
         self.recovery_step += 1
@@ -382,7 +400,10 @@ class Ram():
         # Update hit_pred backlog
         self.huey_prev_hit_preds.append(self.huey_hit_pred)
 
-            # logger.debug(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
+        # Update current Huey hit prediction
+        self.hit_pred(self.HIT_THRESHOLDS)
+
+        # logger.debug(f'🥶🥶🥶 Huey Pos Count: {self.huey_pos_count}')
         self.huey_pos_count += 1
         self.huey_orient_count += 1
 
