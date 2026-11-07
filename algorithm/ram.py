@@ -111,9 +111,15 @@ class Ram():
         self.enemy_previous_positions = []
         self.enemy_previous_positions.append(self.enemy_position)
 
+        # hit prediction bookkeeping
         self.huey_prev_hit_preds = [] # booleans for hit pred results
         self.huey_hit_pred = False
         self.huey_smooth_hit_pred = False
+
+        self.huey_radius = None
+        self.huey_heading = None
+        self.huey_prev_radius = None
+        self.huey_prev_heading = None
 
         # old time
         self.old_time = time.time()
@@ -176,7 +182,13 @@ class Ram():
 
     # Returns the scalar radius (distance) between Huey and the enemy
     def huey_enemy_radius(self):
-        return np.linalg.norm(self.enemy_position - self.huey_position)
+        self.huey_radius = np.linalg.norm(self.enemy_position - self.huey_position)
+        return self.huey_radius
+
+    def delta_radius(self):
+        if self.huey_radius is None or self.huey_prev_radius is None:
+            return 1 # since we multiply by None
+        return self.huey_radius - self.huey_prev_radius
 
     # Returns the difference in angle between the direction huey is facing and the line from huey to the enemy
     def huey_enemy_heading(self):
@@ -193,15 +205,30 @@ class Ram():
         dot_prod = np.dot(radius_norm, orie_norm) # [-1,1]
 
         # return dot_product
-        return np.rad2deg(np.arccos(dot_prod)) # [0,180] deg
+        self.huey_heading = np.rad2deg(np.arccos(dot_prod)) # [0,180] deg
+        return self.huey_heading 
+
+    def delta_heading(self):
+        if self.huey_heading is None or self.huey_prev_heading is None:
+            return 1 # since we multiply by None
+        return self.huey_heading - self.huey_prev_heading
 
     def hit_pred(self, thresholds: dict[str:float]):
+        # Skip first frame
+        if self.huey_heading is not None:
+            self.huey_prev_heading = self.huey_heading
+        if self.huey_radius is not None:
+            self.huey_prev_radius = self.huey_radius
+            
         rad_score = self.huey_enemy_radius()/990 # Distance normalized (0 to 1)
         heading_score = self.huey_enemy_heading()/180 # Heading normalized (0 to 1)
-        hit_loss_score = rad_score * heading_score
+        
 
         # Additional Potential Features
-        
+        delta_rad_score = abs(self.delta_radius())/990
+        delta_heading_score = abs(self.delta_heading())/180
+
+        hit_loss_score = rad_score * heading_score * delta_rad_score * delta_heading_score
 
         self.huey_hit_pred = (rad_score < thresholds["rad"]) and (heading_score < thresholds["head"]) and (hit_loss_score < thresholds["loss"])
 
