@@ -212,6 +212,7 @@ class Ram:
         self.recover_turn = 0.5
         self.is_recovering = is_recovering
         self.is_backing = False
+        self.is_responsive = True
 
     # ----------------------------- HELPER METHODS -----------------------------
 
@@ -301,6 +302,9 @@ class Ram:
             (rad_score < thresholds["rad"])
             and (heading_score < thresholds["head"])
             and (hit_loss_score < thresholds["loss"])
+            and not self.is_recovering
+            and not self.is_backing
+            and self.is_responsive
         )
 
         # Wholistic
@@ -338,6 +342,9 @@ class Ram:
 
         counter_pos = 0
         x_curr, y_curr = self.huey_position
+        x_prev, y_prev = self.huey_previous_positions[-1]
+
+        self.is_responsive = math.sqrt((x_curr - x_prev) ** 2 + (y_curr - y_prev) ** 2) < Ram.TOLERANCE
 
         for prev_pos in self.huey_previous_positions:
             if math.sqrt((x_curr - prev_pos[0]) ** 2 + (y_curr - prev_pos[1]) ** 2) < Ram.TOLERANCE:
