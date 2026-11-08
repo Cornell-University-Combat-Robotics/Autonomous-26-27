@@ -7,7 +7,6 @@ import torch
 import openvino as ov
 
 from algorithm.ram import Ram
-from corner_detection.color_picker import ColorPicker
 from machine.predict import YoloModel
 from transmission.motors import Motor
 from transmission.serial_conn import OurSerial
