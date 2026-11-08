@@ -1,3 +1,5 @@
+"""Identifies Huey among the detected bots and finds its orientation from its corner colors"""
+
 import os
 import cv2
 import numpy as np
@@ -18,7 +20,7 @@ class RobotCornerDetection:
         Initializes the RobotCornerDetection class.
 
         Args:
-            bots (list): A list of dictionary containing information about the 
+            bots : A list of dictionary containing information about the 
                         bots, including bounding boxes and images. This is empty 
                         for now when initialized before the match. There is a
                         setter that will run during the match.
@@ -54,6 +56,12 @@ class RobotCornerDetection:
 
 
     def set_bots(self, bots: dict):
+        """
+        Sets the bots to search for Huey on the next detection pass
+
+        Args:
+            bots : The bots to search for Huey on the next detection pass
+        """
         self.bots = bots
     
     def detect_our_robot_main(self, bot_images: list[np.ndarray], threshold_set=True) -> np.ndarray:
@@ -61,8 +69,8 @@ class RobotCornerDetection:
         Detects the image containing our robot between two or more given images.
 
         Args:
-            bot1_image (np.ndarray): The first bot image.
-            bot2_image (np.ndarray): The second bot image.
+            bot1_image : The first bot image.
+            bot2_image : The second bot image.
 
         Returns:
             np.ndarray: The image identified as containing our robot.
@@ -100,6 +108,11 @@ class RobotCornerDetection:
             return None
     
     def four_good(self, tolerance=5): 
+        """
+        Returns 1 if corners are in a square shape.
+        Args:
+            tolerance : angle of tolerance beyond 90 degrees for finding corners.
+        """
         logger.info("entered four good")
         for j in range(0, 2):
             for i in range(0,2):
@@ -123,9 +136,16 @@ class RobotCornerDetection:
                     return 0
         return 1
     
-    def non_diag_good(self, is_not_diagonal, is_flipped):
+    def non_diag_good(self, is_not_diagonal: bool, is_flipped: int) -> int:
         """
-        Returns 1 if the two corners weren't diagonal and 0 otherwise.
+        Checks whether a two-corner orientation reading can be trusted.
+
+        Args:
+            is_not_diagonal : True if the two detected corners are on the same side, and False if they are not on the same side
+            is_flipped : -1 if flipped, 1 if not flipped
+
+        Returns:
+            1 if the corners are on the same side, 0 if they are diagonal. Also 0 if the robot is upside down and detected two front or two back corners.
         """
         logger.debug("entered non diag good")
 
@@ -145,16 +165,22 @@ class RobotCornerDetection:
         else:
             return 0
     
-    def corner_detection_main(self, area_threshold, previous_orientations: list = [], threshold_set: bool=True, is_flipped:int = 1, tolerance:int=15) -> dict | None:
+    def corner_detection_main(self, area_threshold: int = 10, previous_orientations: list[float] = [], threshold_set: bool=True, is_flipped:int = 1, tolerance:int=15) -> tuple[dict | None, int]:
         """
         Main function for detecting corners and orientation of the robot.
 
+        Args:
+            area_threshold : Minimum pixel area for a corner blob
+            previous_orientations : Bot's past orientations in degrees
+            threshold_set : False on the first frame, which sets the initial bot color threshold. True afterwards, which updates the rolling threshold.
+            is_flipped : -1 if the robot is upside down, 1 if right side up
+            tolerance : Allowed deviation from 90 degrees, in degrees, between adjacent corners
+
         Returns:
-            dict: A dictionary containing details of the robot and enemy robots.
-            confidence: 0 or 1, meaning whether we are confident in the orientation
+            dict : A dictionary containing details of the robot and enemy robots.
+            confidence : 0 or 1, meaning whether we are confident in the orientation
         """
         try:
-            # AARON CHANGE AARON CHANGE TODO: MAKE SURE THIS IS CORRECT
             self.corner_method = 0
             self.is_diagonal = False
             
@@ -256,6 +282,7 @@ class RobotCornerDetection:
 
 
 if __name__ == "__main__":
+    # Manual smoke test: runs corner detection on saved images of Huey.
     huey_image_path = os.getcwd() + "/warped_images/east_4.png"
     not_huey_image_path = os.getcwd() + "/warped_images/east_4_not_huey.png"
     selected_colors_file = os.getcwd() + "/selected_colors.txt"

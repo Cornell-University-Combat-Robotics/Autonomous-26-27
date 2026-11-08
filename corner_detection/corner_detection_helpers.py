@@ -1,3 +1,5 @@
+"""Helpers for corner detection"""
+
 import math
 import cv2
 import numpy as np
@@ -16,13 +18,16 @@ CORNER_THRESHOLD = 10.0
 BLACKOUT_THRESHOLD = 0.4
 
 @staticmethod
-def find_bot_color_pixels(image: np.ndarray, bot_color_hsv: list) -> int:
+def find_bot_color_pixels(image: np.ndarray, bot_color_hsv: list[int]) -> int:
     """
     Detects the number of a predefined color pixels in the given image.
 
-    Args: image (np.ndarray): Input image of the robot in BGR format.
+    Args: 
+        image : Input image of the robot in BGR format.
+        bot_color_hsv : The robot's color as [H, S, V] in OpenCV ranges (H: 0-179, S: 0-255, V: 0-255).
 
-    Returns: int: The number of predefined color pixels detected in the image.
+    Returns: 
+        int: The number of predefined color pixels detected in the image.
     """
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
@@ -38,15 +43,17 @@ def find_bot_color_pixels(image: np.ndarray, bot_color_hsv: list) -> int:
     # cv2.destroyAllWindows()
     return cv2.countNonZero(mask)
 
-def get_contours_per_color(side: str, hsv_image: np.ndarray, selected_colors) -> list[np.ndarray]:
+def get_contours_per_color(side: str, hsv_image: np.ndarray, selected_colors: list[list[int]]) -> list[np.ndarray]:
     """
     Retrieves contours for the front or back corners based on the manually picked color.
 
     Args:
-        side (str): "front" for red contours, "back" for blue contours.
-        hsv_image (np.ndarray): Input image in HSV format.
+        side : "front" for red contours, "back" for blue contours.
+        hsv_image : Input image in HSV format.
+        selected_colors : Three HSV colors, each [H, S, V], in [robot, front, back] order.
 
-    Returns: list: Contours corresponding to the given color.
+    Returns: 
+        list : Contours corresponding to the given color.
     """
     selected_color = (selected_colors[1] if side == "front" else selected_colors[2])
 
@@ -64,13 +71,17 @@ def get_contours_per_color(side: str, hsv_image: np.ndarray, selected_colors) ->
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
 
-def find_our_bot(self, images: list[np.ndarray], bot_color_hsv, threshold_set=True) -> np.ndarray | None:
+def find_our_bot(self, images: list[np.ndarray], bot_color_hsv: list[int], threshold_set: bool= True) -> np.ndarray | None:
     """
     Identifies which image contains our robot based on a predefined robot color.
 
-    Args: images (list[np.ndarray]): List of input images.
+    Args: 
+        images : List of input images.
+        bot_color_hsv : The robot's color as [H, S, V] (selected_colors[0]).
+        threshold_set : False on the first frame, which sets the initial threshold. True afterwards, which updates the rolling threshold.
 
-    Returns: np.ndarray: The image containing our robot.
+    Returns: 
+        np.ndarray: The image with the highest share of our robot's color, or None if no image passes the threshold (or an error occurs).
     """
     try:
         if not images:
@@ -109,7 +120,21 @@ def find_our_bot(self, images: list[np.ndarray], bot_color_hsv, threshold_set=Tr
         logger.warning(f"Unexpected error occurred in find_our_bot: {e}")
         return None
 
-def dynamic_threshold(self, threshold_set, bot_color_percentages):
+def dynamic_threshold(self, threshold_set: bool, bot_color_percentages: list[float]) -> None:
+    """
+    Sets or updates the color-percentage threshold used to decide whether an image is our robot.
+
+    On the first frame (threshold_set is False), it sets the threshold to the midpoint
+    between the top two robots' color percentages, or to MIN_THRESHOLD if only one robot
+    is visible. On later frames, it averages that midpoint over the last
+    self.dynamic_threshold_window frames. The threshold never goes below MIN_THRESHOLD.
+    Each call also adds a row to self.color_percentage_rows for graphing.
+    
+    Args:
+        threshold_set : False on the first frame, which sets the initial threshold. True afterwards, which updates the rolling threshold.
+        bot_color_percentages : Share of each robot image's pixels that match our color, from 0 to 1, sorted in ascending order (we assume the highest is us).
+
+    """
     # Case 1: Setting the initial threshold 
     if not threshold_set:
         logger.debug("case 1")
@@ -158,16 +183,20 @@ def dynamic_threshold(self, threshold_set, bot_color_percentages):
     elif len(bot_color_percentages) == 0:
         self.color_percentage_rows.append((0, 0, self.huey_color_percentage_threshold))
 
-def find_centroids_per_color(side: str, image: np.ndarray, hsv_image: np.ndarray, selected_colors, area_threshold) -> list:
+def find_centroids_per_color(side: str, image: np.ndarray, hsv_image: np.ndarray, selected_colors:list[list[int]], area_threshold: float) -> list[tuple[int, int]]:
     """
     Finds the centroids of a specific color (front or back) in the given image.
 
     Args:
-        side (str): "front" or "back" for the color.
-        image (np.ndarray): The input image in BGR format.
-        hsv_image (np.ndarray): The HSV version of the input image.
+        side : "front" or "back" for the color.
+        image : The input image in BGR format.
+        hsv_image : The HSV version of the input image.
+        selected_colors : Three HSV colors, each [H, S, V], in [robot, front, back] order.
+        area_threshold : Minimum contour area in pixels squared for a contour to count as a corner. Set by "area_theshold" in quant_settings.json (default 15).
 
-    Returns: list: Centroids of the detected contours.
+    Returns: 
+        list[tuple[int, int]]: Up to 2 (x, y) centroids, the ones closest to the image
+            center first.
     """
 
     # 1. Get image dimensions and center point
@@ -222,13 +251,18 @@ def find_centroids_per_color(side: str, image: np.ndarray, hsv_image: np.ndarray
             
     return centroids
 
-def find_centroids(image: np.ndarray, selected_colors, area_threshold) -> np.ndarray:
+def find_centroids(image: np.ndarray, selected_colors:list[list[int]], area_threshold: float) -> np.ndarray:
     """
     Finds the centroids for the front and back corners of the robot.
 
-    Args: image (np.ndarray): The input image in BGR format.
+    Args: 
+        image : The input image in BGR format.
+        selected_colors : Three HSV colors, each [H, S, V], in [robot, front, back] order.
+        area_threshold : Minimum contour area in pixels squared for a contour to count as a corner. Set by "area_theshold" in quant_settings.json (default 15).
+        
 
-    Returns: list: A list containing centroids for the front and back corners.
+    Returns: 
+        list: A list containing centroids for the front and back corners.
     """
     three = False
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -256,7 +290,7 @@ def find_centroids(image: np.ndarray, selected_colors, area_threshold) -> np.nda
 
     return np.array([front_array, back_array], dtype=object), three
 
-def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagonals: list, sides: list, huey_bbox, prev_flipped:int, is_flipped: int) -> Tuple[float, bool]:
+def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagonals: list[float], sides: list[float], huey_bbox: list[list[float]], prev_flipped: int, is_flipped: int) -> Tuple[float, bool]:
     """
     Handles orientation calculation when only 2 points are detected by cases.
     Case 1: 2 Front or 2 Back corners are found
@@ -273,6 +307,27 @@ def two_corners(centroid_points: np.ndarray, previous_orientation: float, diagon
             - If valid orientation (i.e. not recently flipped), 
             return closest angle to prev  
             - Else return average of two potentials
+    
+    Args:
+        entroid_points : [front, back] centroids from find_centroids, each an array of (x, y) points.
+        previous_orientation : Huey's last orientation in degrees, used to pick between the two options for diagonal corners.
+        diagonals : Running average diagonal corner distance in pixels
+            (self.diag_len). Only [0] is used. If empty, defaults to 93.
+        sides (list[float]): Running average side corner distance in pixels
+            (self.side_len). Only [0] is used. If empty, defaults to 67.
+        huey_bbox (list[list[float]]): Huey's bounding box as [[x1, y1], [x2, y2]].
+        prev_flipped (int): is_flipped from the previous frame (1 upright, -1 upside down).
+        is_flipped (int): Current flip state (1 upright, -1 upside down). If it differs
+            from prev_flipped, the robot just flipped and the previous orientation is not
+            trusted.
+
+    Returns:
+        tuple[float, bool]: (orientation in degrees, is_not_diagonal). is_not_diagonal is
+            False only when the two corners are diagonal from each other (Case 2.2).
+
+    Raises:
+        ValueError: If centroid_points doesn't hold exactly 2 corners in a supported
+            configuration.
     """
     IS_VALID_ORIE = prev_flipped == is_flipped
 
