@@ -99,13 +99,6 @@ def read_prev_colors(file_path):
     return selected_colors
 
 
-def make_new_colors(output_file_path, warped_frame):
-    selected_colors = ColorPicker.pick_colors(warped_frame)
-    with open(output_file_path, "w") as file:
-        for color in selected_colors:
-            file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-    return selected_colors
-
 def get_predictor(MODEL_NAME, OD_IMG_SIZE, SEGMENT=False):
     if torch.cuda.is_available():
         logger.info(f"Using {MODEL_NAME} on CUDA for object detection.")
