@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import os
 import logging
-import logging_config.logging_config 
+import logging_config.logging_config
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -125,23 +125,40 @@ class ColorPicker:
         cv2.destroyAllWindows()
         return selected_colors
 
-def save_colors_to_file(colors: list[np.ndarray], output_file: str) -> None:
-    """
-    Saves the selected colors to a text file in HSV format.
+    @staticmethod
+    def save_colors_to_file(colors: list[np.ndarray], output_file: str) -> None:
+        """Saves the selected colors to a text file in HSV format.
 
         Args:
             colors: List of HSV colors to be saved.
             output_file: Path to the output file.
-    """
-    try:
-        with open(output_file, "w") as file:
-            for color in colors:
-                file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
-        logger.info(f"Selected colors have been saved to '{output_file}'.")
-    except FileNotFoundError:
-        logger.warning(f"Error: Output file path '{output_file}' does not exist.")
-    except Exception as e:
-        logger.warning(f"Error saving colors to file: {e}")
+        """
+        try:
+            with open(output_file, "w") as file:
+                for color in colors:
+                    file.write(f"{color[0]}, {color[1]}, {color[2]}\n")
+            logger.info(f"Selected colors have been saved to '{output_file}'.")
+        except FileNotFoundError:
+            logger.warning(f"Error: Output file path '{output_file}' does not exist.")
+        except Exception as e:
+            logger.warning(f"Error saving colors to file: {e}")
+
+    @staticmethod
+    def make_new_colors(output_file_path: str, warped_frame: np.ndarray) -> list[np.ndarray] | None:
+        """Pick colors interactively, save them to a file, and return them.
+
+        Args:
+            output_file_path: Path to write the colors file to, one "H, S, V" line per color.
+            warped_frame: Warped BGR arena frame to pick colors from.
+
+        Returns:
+            Three HSV colors (robot, front, back), each a uint8 array of [H, S, V]. Returns None if
+            the user cancels with Esc, or an empty list if no frame was given.
+        """
+        selected_colors = ColorPicker.pick_colors(warped_frame)
+        ColorPicker.save_colors_to_file(selected_colors, output_file_path)
+        return selected_colors
+
 
 def display_colors(selected_colors: list[np.ndarray]) -> None:
     """
