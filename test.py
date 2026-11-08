@@ -45,11 +45,11 @@ MODE = "video"
 # MODE = "custom"
 
 # Core behavior
+SEGMENT = True  # Set to True to use segmentation model instead of detection model
 WARP_AND_COLOR_PICKING = False
 DISPLAY_SCALE = 0.5  # 1.0 for full-size display, 0.5 for easier 1080p selection
 CAN_RECOVER = True
-CAN_RECOVER = True
-BLACKOUT = True
+BLACKOUT = True and not SEGMENT # Segmentation models "blackout" by default, so always keep false with segmentation.
 COLOR_QUANTIZATION = True  # Should almost always stay True
 CAMERA_STREAM = False   # Frame capture thread (must be False for videos)
 IMU_ENABLED = False    # Set to True to enable IMU integration (if hardware is available)
@@ -81,8 +81,10 @@ FRAME_RATE = 120
 # Model selection
 # MODEL_NAME = "SmallComp"       # Best accuracy if compute allows
 # MODEL_NAME = "NanoSizeVariant" # Faster, slightly lower accuracy
-MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
-OD_IMG_SIZE = 320                # Must be multiple of 32, avoid below 320
+# MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
+# MODEL_NAME = "Nano320Temp"       # Trained with match images at 320 size
+MODEL_NAME = "NanoSegAaron"  # Trained with match images at 320 size, segmentation model
+OD_IMG_SIZE = 640                # Must be multiple of 32, avoid below 320
 
 if MODE == "comp" or MODE == "live":
     IS_TRANSMITTING = True         # True to send transmissions to live Huey via Arduino    
@@ -210,7 +212,7 @@ def main():
         initialize_quantization()
 
         # Get predictor, if anything goes wrong here, call Aaron #TODO: Document better
-        predictor = get_predictor(MODEL_NAME, OD_IMG_SIZE)
+        predictor = get_predictor(MODEL_NAME, OD_IMG_SIZE, SEGMENT=SEGMENT)
 
         if IMU_ENABLED:
             imu_sensor = IMU_sensor()
