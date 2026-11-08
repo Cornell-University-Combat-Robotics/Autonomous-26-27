@@ -1,7 +1,7 @@
 """Interactive HSV color picker for Huey's body and corner colors."""
 
 import logging
-import logging_config.logging_config
+import os
 from typing import Any
 
 import cv2
@@ -16,6 +16,7 @@ class ColorPicker:
     @staticmethod
     def pick_colors(image: np.ndarray | None) -> list[np.ndarray] | None:
         """Allows the user to manually pick colors for the robot and the front and back corners.
+
         The user selects the robot's color first, followed by the front and back corners.
 
         Args:
@@ -229,7 +230,7 @@ if __name__ == "__main__":
             img = cv2.imread(image_path)
             selected_colors = ColorPicker.pick_colors(img)
             if selected_colors:
-                save_colors_to_file(selected_colors, output_file)
+                ColorPicker.save_colors_to_file(selected_colors, output_file)
                 display_colors(selected_colors)
         except Exception as e:
             logger.warning(f"An unexpected error occurred: {e}")

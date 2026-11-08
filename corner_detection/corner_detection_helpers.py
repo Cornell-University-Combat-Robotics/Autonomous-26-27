@@ -2,9 +2,15 @@
 
 import logging
 import math
+from typing import TYPE_CHECKING
 
 import cv2
 import numpy as np
+
+if TYPE_CHECKING:
+    # Only imported for type hints: a runtime import would be circular, since
+    # corner_detection.py imports this module.
+    from .corner_detection import RobotCornerDetection
 
 logger = logging.getLogger(__name__)
 
@@ -71,11 +77,16 @@ def get_contours_per_color(
 
 
 def find_our_bot(
-    self, images: list[np.ndarray], bot_color_hsv: list[int], threshold_set: bool = True
+    self: "RobotCornerDetection",
+    images: list[np.ndarray],
+    bot_color_hsv: list[int],
+    threshold_set: bool = True,
 ) -> np.ndarray | None:
     """Identifies which image contains our robot based on a predefined robot color.
 
     Args:
+        self (RobotCornerDetection): The detector whose dynamic color threshold is read
+            and updated.
         images : List of input images.
         bot_color_hsv : The robot's color as [H, S, V] (selected_colors[0]).
         threshold_set : False on the first frame, which sets the initial threshold. True afterwards, which updates the rolling threshold.
@@ -124,7 +135,9 @@ def find_our_bot(
         return None
 
 
-def dynamic_threshold(self, threshold_set: bool, bot_color_percentages: list[float]) -> None:
+def dynamic_threshold(
+    self: "RobotCornerDetection", threshold_set: bool, bot_color_percentages: list[float]
+) -> None:
     """Sets or updates the color-percentage threshold used to decide whether an image is our robot.
 
     On the first frame (threshold_set is False), it sets the threshold to the midpoint
@@ -134,6 +147,7 @@ def dynamic_threshold(self, threshold_set: bool, bot_color_percentages: list[flo
     Each call also adds a row to self.color_percentage_rows for graphing.
 
     Args:
+        self (RobotCornerDetection): The detector whose threshold state is updated.
         threshold_set : False on the first frame, which sets the initial threshold. True afterwards, which updates the rolling threshold.
         bot_color_percentages : Share of each robot image's pixels that match our color, from 0 to 1, sorted in ascending order (we assume the highest is us).
 
@@ -235,18 +249,18 @@ def find_centroids_per_color(
 
     # Calculate bbox area:
     # 3. Define the sorting key (Distance is primary, Area is secondary)
-    def sorting_criteria(c):
+    def sorting_criteria(c: np.ndarray) -> tuple[float, float]:
         area = cv2.contourArea(c)
 
-        M = cv2.moments(c)
-        if M["m00"] == 0:
+        moments = cv2.moments(c)
+        if moments["m00"] == 0:
             # Handle lines/points: assume the first point is the location
             # and push them to the end of the priority list
             return (float("inf"), 0)
 
         # Calculate centroid
-        cx = int(M["m10"] / M["m00"])
-        cy = int(M["m01"] / M["m00"])
+        cx = int(moments["m10"] / moments["m00"])
+        cy = int(moments["m01"] / moments["m00"])
 
         # Euclidean distance squared from center
         dist_sq = (cx - center_x) ** 2 + (cy - center_y) ** 2
@@ -269,10 +283,10 @@ def find_centroids_per_color(
             if len(centroids) >= 2:
                 break
 
-            M = cv2.moments(contour)
-            if M["m00"] != 0:
-                cx = int(M["m10"] / M["m00"])
-                cy = int(M["m01"] / M["m00"])
+            moments = cv2.moments(contour)
+            if moments["m00"] != 0:
+                cx = int(moments["m10"] / moments["m00"])
+                cy = int(moments["m01"] / moments["m00"])
                 centroids.append((cx, cy))
 
     return centroids
@@ -331,6 +345,7 @@ def two_corners(
     is_flipped: int,
 ) -> tuple[float, bool]:
     """Handles orientation calculation when only 2 points are detected by cases.
+
     Case 1: 2 Front or 2 Back corners are found
         - Finds the two possible angles
         - Finds the angle of the line between the center of Huey's bbox and the
@@ -367,7 +382,7 @@ def two_corners(
         ValueError: If centroid_points doesn't hold exactly 2 corners in a supported
             configuration.
     """
-    IS_VALID_ORIE = prev_flipped == is_flipped
+    is_valid_orie = prev_flipped == is_flipped
 
     # we update prev_flipped in corner_detection_main
 
@@ -421,7 +436,7 @@ def two_corners(
 
         # CASE 2.2: The corners are diagonal
         else:
-            if not IS_VALID_ORIE:  # take midorie
+            if not is_valid_orie:  # take midorie
                 logger.debug("💀MIDORIE")
                 length = front_points[0][1] - back_points[0][1]  # front[0][1] should be y coords,
                 width = front_points[0][0] - back_points[0][0]
@@ -505,7 +520,8 @@ def pick_closest_angle(angle1: float, angle2: float, target: float) -> float:
         float : Closest of angle1 and angle2 to target.
     """
 
-    def get_diff(a, b):
+    def get_diff(a: float, b: float) -> float:
+        """Returns the smallest angle in degrees between headings a and b (0-180), handling the 0/360 wrap."""
         return abs((a - b + 180) % 360 - 180)
 
     return angle1 if get_diff(angle1, target) < get_diff(angle2, target) else angle2
@@ -771,12 +787,12 @@ def compute_blackout_box(
     ymin = round(y_top - hy_min)
     ymax = round(y_bottom - hy_min)
 
-    H, W = image.shape[:2]
+    h, w = image.shape[:2]
     # Make sure borders aren't outside of image
-    xmin = max(0, min(W, xmin))
-    xmax = max(0, min(W, xmax))
-    ymin = max(0, min(H, ymin))
-    ymax = max(0, min(H, ymax))
+    xmin = max(0, min(w, xmin))
+    xmax = max(0, min(w, xmax))
+    ymin = max(0, min(h, ymin))
+    ymax = max(0, min(h, ymax))
 
     if xmin >= xmax or ymin >= ymax:
         return image, False

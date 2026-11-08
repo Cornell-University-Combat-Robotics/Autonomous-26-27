@@ -22,9 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 class RobotCornerDetection:
-    """A class for detecting the corners and orientation of robots in images
-    based on their unique colors and shapes.
-    """
+    """Detects Huey's corners and orientation from its unique corner colors and shape."""
 
     LENGTH_BUFFER = 20
 
@@ -33,22 +31,29 @@ class RobotCornerDetection:
         selected_colors: list[list[int]],
         display_final_image: bool = False,
         display_possible_hueys: bool = False,
-        BLACKOUT: bool = True,
+        blackout: bool = True,
         thresh: float = 0.4,
         frame_rate: int = 120,
     ) -> None:
         """Initializes the RobotCornerDetection class.
 
+        The bots to search start empty, since they aren't known before the match. Set them
+        each frame with ``set_bots``.
+
         Args:
-            bots : A list of dictionary containing information about the
-                        bots, including bounding boxes and images. This is empty
-                        for now when initialized before the match. There is a
-                        setter that will run during the match.
-            selected_colors (list): Manually selected colors for front and back corners.
+            selected_colors (list[list[int]]): Three HSV colors, each [H, S, V], in
+                [robot, front, back] order.
             display_final_image (bool): Whether to display the final image with
-                        labeled left and right corners.
+                labeled left and right corners.
             display_possible_hueys (bool): Whether to display all possible
-                        images of Huey.
+                images of Huey.
+            blackout (bool): Whether to mask out the part of Huey's crop that overlaps
+                the enemy's bbox before finding corners. Keep False with segmentation
+                models, which already mask the enemy.
+            thresh (float): Largest fraction of Huey's bbox area (0-1) the overlap can
+                cover and still be masked. Above it, the frame is flagged as high overlap
+                and not trusted.
+            frame_rate (int): Camera frame rate in frames per second.
         """
         self.bots = []
         self.selected_colors = selected_colors
@@ -66,7 +71,7 @@ class RobotCornerDetection:
         self.frame_rate = frame_rate
 
         self.thresh = thresh
-        self.BLACKOUT = BLACKOUT
+        self.blackout = blackout
         self.prev_flipped = 1  # track for two corner
         self.dynamic_threshold_window = (
             60  # frame_rate//2 # Time/Number of Frames for the dynamic threshold for FindOurBot
@@ -84,12 +89,15 @@ class RobotCornerDetection:
         """
         self.bots = bots
 
-    def detect_our_robot_main(self, bot_images: list[np.ndarray], threshold_set=True) -> np.ndarray:
+    def detect_our_robot_main(
+        self, bot_images: list[np.ndarray], threshold_set: bool = True
+    ) -> np.ndarray | None:
         """Detects the image containing our robot between two or more given images.
 
         Args:
-            bot1_image : The first bot image.
-            bot2_image : The second bot image.
+            bot_images (list[np.ndarray]): Cropped BGR image of each detected bot.
+            threshold_set (bool): False on the first frame, which sets the initial
+                color threshold. True afterwards, which updates the rolling threshold.
 
         Returns:
             np.ndarray: The image identified as containing our robot.
@@ -290,7 +298,7 @@ class RobotCornerDetection:
                             break
                     # Compute blackout overlapped part and create csv
                     if (
-                        self.BLACKOUT
+                        self.blackout
                         and enemy_bots
                         and enemy_bots["bbox"]
                         and huey
@@ -313,12 +321,12 @@ class RobotCornerDetection:
                     self.centroids, self.diag_len, self.side_len, self.num_lens
                 )
 
-                IS_NOT_DIAGONAL = False
+                is_not_diagonal = False
 
                 if len(centroid_points[0]) + len(centroid_points[1]) == 2:
                     if previous_orientations is not None and len(previous_orientations) > 0:
                         previous_orientation = previous_orientations[-1]
-                        calc_orientation, IS_NOT_DIAGONAL = two_corners(
+                        calc_orientation, is_not_diagonal = two_corners(
                             centroid_points,
                             previous_orientation,
                             self.diag_len,
@@ -329,7 +337,7 @@ class RobotCornerDetection:
                         )
                         self.corner_method = 2
 
-                        if IS_NOT_DIAGONAL:
+                        if is_not_diagonal:
                             self.is_diagonal = False
                             huey["orientation"] = calc_orientation
 
@@ -344,7 +352,7 @@ class RobotCornerDetection:
                         huey["orientation"] = None
                     conf = self.confidence(
                         self.corner_method,
-                        IS_NOT_DIAGONAL,
+                        is_not_diagonal,
                         high_overlap,
                         is_flipped,
                         tolerance,
@@ -368,7 +376,7 @@ class RobotCornerDetection:
                 result = {"huey": huey, "enemy": enemy_bots}
                 conf = self.confidence(
                     self.corner_method,
-                    IS_NOT_DIAGONAL,
+                    is_not_diagonal,
                     high_overlap,
                     is_flipped,
                     tolerance,
