@@ -212,7 +212,7 @@ def main():
         initialize_quantization()
 
         # Get predictor, if anything goes wrong here, call Aaron #TODO: Document better
-        predictor = get_predictor(MODEL_NAME, OD_IMG_SIZE, SEGMENT=SEGMENT)
+        predictor = get_predictor(MODEL_NAME, OD_IMG_SIZE, segment=SEGMENT)
 
         if IMU_ENABLED:
             imu_sensor = IMU_sensor()

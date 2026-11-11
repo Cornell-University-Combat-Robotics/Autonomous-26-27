@@ -99,15 +99,15 @@ def read_prev_colors(file_path):
     return selected_colors
 
 
-def get_predictor(MODEL_NAME, OD_IMG_SIZE, SEGMENT=False):
+def get_predictor(MODEL_NAME, OD_IMG_SIZE, segment=False):
     if torch.cuda.is_available():
         logger.info(f"Using {MODEL_NAME} on CUDA for object detection.")
         predictor = YoloModel(MODEL_NAME, "TensorRT",
-                            OD_IMG_SIZE, device="cuda", SEGMENT=SEGMENT)
+                            OD_IMG_SIZE, device="cuda", segment=segment)
 
     elif torch.backends.mps.is_available():
         logger.info(f"Using {MODEL_NAME} with CoreML for object detection.")
-        predictor = YoloModel(MODEL_NAME, "CoreML", OD_IMG_SIZE, SEGMENT=SEGMENT)
+        predictor = YoloModel(MODEL_NAME, "CoreML", OD_IMG_SIZE, segment=segment)
 
     # CoreML is better for all Macs i'm pretty sure
     # elif torch.backends.mps.is_available():
@@ -116,15 +116,15 @@ def get_predictor(MODEL_NAME, OD_IMG_SIZE, SEGMENT=False):
 
     elif ov.Core().get_available_devices() and "GPU" in ov.Core().get_available_devices():
         logger.info(f"Using {MODEL_NAME} with OpenVINO on GPU for object detection.")
-        predictor = YoloModel(MODEL_NAME, "OpenVINO", OD_IMG_SIZE, device="intel:gpu", SEGMENT=SEGMENT)
+        predictor = YoloModel(MODEL_NAME, "OpenVINO", OD_IMG_SIZE, device="intel:gpu", segment=segment)
 
     elif ov.Core().get_available_devices() and "CPU" in ov.Core().get_available_devices():
         logger.info(f"Using {MODEL_NAME} with OpenVINO on CPU for object detection.")
-        predictor = YoloModel(MODEL_NAME, "OpenVINO", OD_IMG_SIZE, device="cpu")
+        predictor = YoloModel(MODEL_NAME, "OpenVINO", OD_IMG_SIZE, device="cpu", segment=segment)
 
     else:
         logger.info(f"Using {MODEL_NAME} with ONNX on CPU for object detection.")
-        predictor = YoloModel(MODEL_NAME, "ONNX", OD_IMG_SIZE, device="cpu", SEGMENT=SEGMENT)
+        predictor = YoloModel(MODEL_NAME, "ONNX", OD_IMG_SIZE, device="cpu", segment=segment)
     return predictor
 
 
