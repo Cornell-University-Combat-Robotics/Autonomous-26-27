@@ -220,7 +220,7 @@ def main():
         
 
         # Initialize corner detection
-        corner_detection = RobotCornerDetection(selected_colors, False, False, BLACKOUT=BLACKOUT, thresh=0.4, frame_rate = FRAME_RATE)
+        corner_detection = RobotCornerDetection(selected_colors, False, False, blackout=BLACKOUT, thresh=0.4, frame_rate = FRAME_RATE)
 
         # Initialize transmission TODO: Figure out whether we need weapon_motor_group and JANK_CONTROLLER
         if IS_TRANSMITTING:
