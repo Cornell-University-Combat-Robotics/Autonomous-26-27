@@ -378,10 +378,13 @@ def main():
                         detected_bots_with_data, confidence = corner_detection.corner_detection_main(area_threshold, algorithm.huey_previous_orientations, is_flipped=is_flipped, tolerance=15)
 
                         num_corners = 0
-                        corner_count[5] += 1
-                        for i in range(len(corner_detection.centroids)):
-                            for p in corner_detection.centroids[i]:
-                                num_corners += 1
+                        corner_count[5] += 1 # total number of corners
+                        if corner_detection.corner_method == 3:
+                            num_corners = 3
+                        else:
+                            for i in range(len(corner_detection.centroids)):
+                                for p in corner_detection.centroids[i]:
+                                    num_corners += 1
                         corner_count[num_corners] += 1
 
                         if detected_bots_with_data["huey"]:
