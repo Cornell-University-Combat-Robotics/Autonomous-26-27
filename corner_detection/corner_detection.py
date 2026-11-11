@@ -2,19 +2,18 @@
 
 import logging
 import os
-
+from collections import deque
 import cv2
+import math
 import numpy as np
 
 from .corner_detection_helpers import (
     calc_diagonal_and_side_length,
     compute_angle_between_midpoints,
     compute_blackout_box,
-    deque,
     find_centroids,
     find_our_bot,
     is_overlap,
-    math,
     two_corners,
 )
 
