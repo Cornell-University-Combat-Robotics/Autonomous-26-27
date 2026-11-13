@@ -1,4 +1,4 @@
-"""Defines class for our predictor: YoloModel"""
+"""Defines class for our predictor: YoloModel."""
 
 import logging
 import os
@@ -47,22 +47,21 @@ class YoloModel:
         Loads ./machine/models/{model_name}/{image_size}/{model_name}{ext}.
 
         Args:
-            model_name: Model folder name under machine/models/, e.g.
+            model_name (str) : Model folder name under machine/models/, e.g.
                 "NanoSegAaron". Also the base name of the weights file.
-            #TODO: see if model_type too wordy
-            model_type: Export format to load, which sets the file extension:
+            model_type (str) : Export format to load, which sets the file extension:
                 - "TensorRT": ``.engine``. NVIDIA GPU; must be compiled on the
                   machine that runs it.
                 - "ONNX": ``.onnx``. CPU.
                 - "PT": ``.pt``. Native PyTorch weights.
                 - "OpenVINO": ``_openvino_model/`` folder. Intel CPU or GPU.
                 - "CoreML": ``.mlpackage``. Apple silicon Macs.
-            image_size: Input size in pixels the model was exported at. Picks
+            image_size (int) : Input size in pixels the model was exported at. Picks
                 the ``{image_size}/`` subfolder and is passed to YOLO as
                 ``imgsz`` on every predict() call. Must be a multiple of 32.
-            device: Inference device passed to YOLO, e.g. "cuda", "cpu",
+            device (str | None) : Inference device passed to YOLO, e.g. "cuda", "cpu",
                 "intel:gpu". None lets Ultralytics choose.
-            segment: If True, load as a segmentation model so predict()
+            segment (bool) : If True, load as a segmentation model so predict()
                 returns masks and ``segment_points``; otherwise load as a
                 detection model.
 
@@ -126,11 +125,11 @@ class YoloModel:
         """Run YOLO on an arena frame and give detections of bots and housebots.
 
         Args:
-            img: Warped arena frame, BGR, shape (H, W, 3), dtype uint8.
-            confidence_threshold: Minimum confidence (0-1) for a detection to be kept.
-            show (Unused): Whether we display our detections.
-            track: Whether we use ByteTrack to track detection IDs across consecutive frames of same video.
-            rs (Unused): Random state: the random seed used in a probabilistic model.
+            img (np.ndarray): Warped arena frame, BGR, shape (H, W, 3), dtype uint8.
+            confidence_threshold (float) : Minimum confidence (0-1) for a detection to be kept.
+            show (bool) : Whether we display our detections. Unused.
+            track (bool) : Whether we use ByteTrack to track detection IDs across consecutive frames of same video.
+            rs (int) : Random state: the random seed used in a probabilistic model. Unused.
 
         Returns:
             Dictionary made up of {"bots": [detection, ...], "housebot": [detection, ...]}. "
@@ -211,8 +210,9 @@ class YoloModel:
 
             # 3. Clip coordinates safely
             x1_c, y1_c = max(0, x1), max(0, y1)
-            x2_c, y2_c = min(700, x2), min(
-                700, y2
+            x2_c, y2_c = (
+                min(700, x2),
+                min(700, y2),
             )  # TODO: 700 should be pulled from somewhere, not just set here
 
             cropped_img = img[int(y1_c) : int(y2_c), int(x1_c) : int(x2_c)]
@@ -223,9 +223,9 @@ class YoloModel:
                 # Resize mask to match original image dimensions
                 full_mask = cv2.resize(masks[i], (img.shape[1], img.shape[0]))
                 # Crop the mask to the bounding box and apply threshold
-                mask_crop = (
-                    full_mask[int(y1_c) : int(y2_c), int(x1_c) : int(x2_c)] > 0.5
-                ).astype(np.uint8)
+                mask_crop = (full_mask[int(y1_c) : int(y2_c), int(x1_c) : int(x2_c)] > 0.5).astype(
+                    np.uint8
+                )
                 # Apply mask to the cropped image
                 cropped_img = cv2.bitwise_and(cropped_img, cropped_img, mask=mask_crop)
 
@@ -250,17 +250,15 @@ class YoloModel:
         output = {"bots": robots, "housebot": housebots}
         return output
 
-    def show_predictions(
-        self, img: np.ndarray, bots_dict: dict[str, list[dict]]
-    ) -> np.ndarray:
+    def show_predictions(self, img: np.ndarray, bots_dict: dict[str, list[dict]]) -> np.ndarray:
         """Outputs a new image of predicted bots in input image.
 
         Args:
-            img: Warped arena frame, BGR, shape (H, W, 3), dtype uint8.
-            bots_dict: Return dictionary of detections from predict
+            img (np.ndarray) : Warped arena frame, BGR, shape (H, W, 3), dtype uint8.
+            bots_dict (dict[str, list[dict]]) : Return dictionary of detections from predict
 
         Returns:
-            np.ndarray: img with bot outlines added if segment points exist, otherwise img with bounding boxed drawn.
+            np.ndarray : img with bot outlines added if segment points exist, otherwise img with bounding boxed drawn.
         """
         for label, bots in bots_dict.items():
             for bot in bots:
@@ -301,15 +299,12 @@ class YoloModel:
 
 # Main code block
 if __name__ == "__main__":
-
     # TODO: Make this actually a useful test case!
 
     logger.debug("starting testing with PT model")
     predictor = YoloModel("100epoch11", "PT")
 
-    img_path = (
-        os.getcwd() + "/main_files/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg"
-    )
+    img_path = os.getcwd() + "/main_files/12567_png.rf.6bb2ea773419cd7ef9c75502af6fe808.jpg"
     img = cv2.imread(img_path)
 
     # cv2.imshow("Original image", img)
