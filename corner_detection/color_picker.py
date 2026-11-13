@@ -1,11 +1,11 @@
 """Interactive HSV color picker for Huey's body and corner colors."""
 
+import logging
+import os
+from typing import Any
+
 import cv2
 import numpy as np
-import os
-import logging
-import logging_config.logging_config
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -15,8 +15,8 @@ class ColorPicker:
 
     @staticmethod
     def pick_colors(image: np.ndarray | None) -> list[np.ndarray] | None:
-        """
-        Allows the user to manually pick colors for the robot and the front and back corners.
+        """Allows the user to manually pick colors for the robot and the front and back corners.
+
         The user selects the robot's color first, followed by the front and back corners.
 
         Args:
@@ -59,7 +59,13 @@ class ColorPicker:
             for point in points:
                 cv2.circle(img_copy, point, 5, (0, 255, 0), -1)
                 cv2.putText(
-                    img_copy, f"{point}", point, cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1
+                    img_copy,
+                    f"{point}",
+                    point,
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5,
+                    (255, 0, 0),
+                    1,
                 )
 
             # Create a display panel for selected colors
@@ -161,8 +167,7 @@ class ColorPicker:
 
 
 def display_colors(selected_colors: list[np.ndarray]) -> None:
-    """
-    Displays the selected colors as small colored blocks in a window.
+    """Displays the selected colors as small colored blocks in a window.
 
     Args:
         selected_colors: HSV colors in robot, front, back order, each [H, S, V].
@@ -211,3 +216,21 @@ def display_colors(selected_colors: list[np.ndarray]) -> None:
 
     except Exception as e:
         logger.warning(f"Error displaying colors: {e}")
+
+
+if __name__ == "__main__":
+    image_path = os.getcwd() + "/warped_images/east.png"
+    output_file = "selected_colors.txt"
+
+    # Validating the image path
+    if not os.path.exists(image_path):
+        logger.warning(f"Image file does not exist at path: {image_path}")
+    else:
+        try:
+            img = cv2.imread(image_path)
+            selected_colors = ColorPicker.pick_colors(img)
+            if selected_colors:
+                ColorPicker.save_colors_to_file(selected_colors, output_file)
+                display_colors(selected_colors)
+        except Exception as e:
+            logger.warning(f"An unexpected error occurred: {e}")
