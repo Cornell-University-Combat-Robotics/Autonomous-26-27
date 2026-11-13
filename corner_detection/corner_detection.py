@@ -21,8 +21,59 @@ logger = logging.getLogger(__name__)
 
 
 class RobotCornerDetection:
-    """Detects Huey's corners and orientation from its unique corner colors and shape."""
+    """
+    A class for detecting the corners and orientation of robots in images
+    based on their unique colors and shapes.
 
+    Attributes:
+        LENGTH_BUFFER (int) : Class constant, 20. 
+        bots (dict) : Detections for the current frame, in the format returned
+            by YoloModel.predict(): {"bots": [detection, ...], "housebot": [...]}.
+            Empty list until set_bots() is called during the match.
+        selected_colors (list) : Three HSV values picked before the match.
+            [0] is Huey's body color (used to tell Huey from the enemy),
+            [1] is the front corner color, [2] is the back corner color.
+        display_final_image (bool) : Whether to display the final image
+            with labeled left and right corners.
+        display_possible_hueys (bool) : If True, detect_our_robot_main() shows
+            every candidate bot crop and blocks on a keypress.
+        huey_color_percentage_threshold (float) : Minimum fraction of a crop's
+            pixels that must match Huey's body color for it to count as Huey.
+            -1 until the first find_our_bot() call sets it; then updated by
+            dynamic_threshold() as a rolling average, floored at MIN_THRESHOLD.
+        color_percentage_rows (list[tuple[float, float, float]]) : One row per
+            frame of (huey %, enemy %, threshold), appended by dynamic_threshold().
+            main.py dumps it to a DataFrame for graphing.
+        is_diagonal (bool) : True if the last frame had exactly one front and one
+            back corner and they were diagonal. Reset each corner_detection_main() call.
+        centroids (np.ndarray) : Last detected corner centroids, shape (2,) object
+            array of [front_points, back_points], each up to 2 (x, y) points in
+            crop pixels.
+        diag_len (list[float]) : Running weighted average of Huey's corner-to-corner
+            diagonal in pixels, wrapped in a list so helpers can mutate it in place.
+            Empty until four corners are seen once. Used by two_corners() to tell
+            same-side corners from diagonal ones.
+        side_len (list[float]) : Same as ``diag_len`` but for side length.
+        num_lens (list[int]) : Number of four-corner frames averaged into
+            ``diag_len``/``side_len``, wrapped in a list for in-place mutation.
+        frame_rate (int) : Camera frame rate. Was meant to size
+            ``dynamic_threshold_window``.
+        thresh (float) : Overlap fraction (0-1) above which compute_blackout_box()
+            reports high overlap, which forces confidence to 0.
+        BLACKOUT (bool) : If True, black out the part of Huey's crop that overlaps
+            the enemy's bbox before finding corners. Keep False for segmentation models.
+        prev_flipped (int) : ``is_flipped`` from the last two-corner frame (1 or -1).
+            two_corners() only trusts the previous orientation if this matches.
+        dynamic_threshold_window (int) : Number of frames averaged for
+            ``huey_color_percentage_threshold``. Hardcoded to 60.
+        threshold_queue (deque[float]) : Last ``dynamic_threshold_window`` midpoints
+            between Huey's and the enemy's color percentages.
+        running_sum (float) : Sum of ``threshold_queue``, kept so the average is O(1).
+        corner_method (int) : How the last orientation was found: 0 = no orientation
+            (fewer than 2 corners, or 2 with no previous orientation), 2 = two corners, 3 = three corners (fourth inferred),
+            4 = four corners. Read by main.py.
+
+    """
     LENGTH_BUFFER = 20
 
     def __init__(
