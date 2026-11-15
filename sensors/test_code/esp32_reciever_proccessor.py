@@ -1,8 +1,12 @@
+"""Establishes a serial connection with a microcontroller, sends a command to request IMU data,
+and continuously streams and prints the incoming sensor readings to the console.
+"""
+
 import serial
 
 ser = serial.Serial("COM3", 115200, timeout=1)  # use /dev/ttyUSB0 on Linux
 ser.write(b"get_imu\n")
-line = ser.readline().decode('utf-8').strip()
+line = ser.readline().decode("utf-8").strip()
 
-while (True):
-    print(ser.readline().decode('utf-8').strip())
+while True:
+    print(ser.readline().decode("utf-8").strip())
