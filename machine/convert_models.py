@@ -1,5 +1,7 @@
-# This file is used to convert YOLO models to different formats (e.g., CoreML, TensorRT, ONNX, OpenVINO) for deployment on various platforms. 
-# It uses the Ultralytics YOLO library to load the model and export it in the desired format.
+"""This file is used to convert YOLO models to different formats
+(e.g., CoreML, TensorRT, ONNX, OpenVINO) for deployment on various platforms.
+It uses the Ultralytics YOLO library to load the model and export it in the desired format.
+"""
 
 from ultralytics import YOLO
 
@@ -21,15 +23,30 @@ desired_model_input_size = 640
 # desired_format = "engine"
 # desired_format = "onnx"
 desired_format = "openvino"
-#desired_task = 'detect'
-desired_task = 'segment'
+# desired_task = 'detect'
+desired_task = "segment"
 base_model_extension = ".pt"
 
 # Load the YOLO model
-model = YOLO(models_folder + model_name + "/" + str(desired_model_input_size) +
-             "/" + model_name + base_model_extension, task=desired_task)
+model = YOLO(
+    models_folder
+    + model_name
+    + "/"
+    + str(desired_model_input_size)
+    + "/"
+    + model_name
+    + base_model_extension,
+    task=desired_task,
+)
 
-print(model.export(format=desired_format, imgsz=desired_model_input_size,
-      half=True, simplify=True, task=desired_task))
+print(
+    model.export(
+        format=desired_format,
+        imgsz=desired_model_input_size,
+        half=True,
+        simplify=True,
+        task=desired_task,
+    )
+)
 
 # Terminal prompt: yolo export model=./machine/models/SmallComp/416/SmallComp.pt format=engine simplify=True imgsz=416 half=True
