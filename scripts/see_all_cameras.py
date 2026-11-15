@@ -1,7 +1,9 @@
+"""Diagnoses if a camera is being detected by OpenCV."""
+
+import logging
+
 import cv2
 from cv2_enumerate_cameras import enumerate_cameras
-import logging
-import logging_config.logging_config 
 
 logger = logging.getLogger(__name__)
 
@@ -11,7 +13,9 @@ cameras = enumerate_cameras()
 if cameras:
     logger.info("Available cameras:")
     for camera_info in cameras:
-        logger.info(f"Index: {camera_info.index}, Name: {camera_info.name}, Path: {camera_info.path}")
+        logger.info(
+            f"Index: {camera_info.index}, Name: {camera_info.name}, Path: {camera_info.path}"
+        )
 
     # Example: Open the first camera using its index
     if cameras[0].index is not None:
