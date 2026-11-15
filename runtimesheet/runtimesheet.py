@@ -1,3 +1,9 @@
+"""Runtime profiler for the main loop.
+
+Records how long each stage takes every iteration, then saves the results as a spreadsheet and
+graphs.
+"""
+
 import os
 import time
 import pandas as pd
@@ -10,25 +16,51 @@ logger = logging.getLogger(__name__)
 
 
 class RuntimeSheet:
-    # Used for saving runtimes to a spreadsheet
+    """Saves per-iteration runtimes to a spreadsheet.
+
+    Attributes:
+        init_time (float) : perf_counter time when the sheet was created
+        sheet (list[dict]) : Finished rows, one per iteration
+        row (dict) : Row for the current iteration, keyed by stage name
+        use (bool) : Whether to record anything. When False every method is a no-op
+    """
+
     def __init__(self, use):
+        """Sets up an empty sheet and starts the first row.
+
+        Args:
+            use: Whether to record runtimes at all
+        """
         self.init_time = time.perf_counter()
         self.sheet = []
         self.row = {"Start Time": time.perf_counter()}
         self.use = use
 
     def log(self, name, value):
+        """Adds a value to the current row.
+
+        Args:
+            name: Column name
+            value: Value to store, usually a time in seconds
+        """
         if self.use:
             self.row[name] = value
 
     @contextmanager
     def log_timing(self, name):
-        """
-        Context manager for timing code blocks.
+        """Context manager for timing code blocks.
+
+        Logs the elapsed time to the current row under name when the block exits.
 
         Usage:
             with rs.log_timing("Operation Name"):
                 # code to time
+
+        Args:
+            name: Column name to log the elapsed time under
+
+        Yields:
+            None
         """
         if self.use:
             start_time = time.perf_counter()
@@ -41,21 +73,41 @@ class RuntimeSheet:
             yield
 
     def start_iter(self):
+        """Starts a new row for the next iteration."""
         if self.use:
             self.row = {"Start Time": time.perf_counter()}
 
     def dump(self):
+        """Stamps the end and total time on the current row and adds it to the sheet."""
         if self.use:
             self.row["End Time"] = time.perf_counter()
             self.row["Total"] = self.row["End Time"] - self.row["Start Time"]
             self.sheet.append(self.row)
 
     def get_row(self, index):
+        """Returns a finished row from the sheet.
+
+        Args:
+            index: Row index. Negative indexes count back from the latest row
+
+        Returns:
+            The row dict, or None if the index is out of range or the sheet is off
+        """
         if self.use and 0 <= abs(index) < len(self.sheet):
             return self.sheet[index]
         return None
 
     def save(self, output_name):
+        """Saves the sheet to runtimesheet/output as an .xlsx plus graphs.
+
+        Times are converted to milliseconds and an Other column is added for time not covered by a
+        named stage. Always makes a line graph (.png). If MAKE_COMPLEX_PLOTS is on, also makes an
+        .svg, a stacked area graph, and interactive Plotly HTML graphs if Plotly is installed.
+        Logs an error instead of raising if a column is missing.
+
+        Args:
+            output_name: File name without an extension. Put in runtimesheet/output if not already
+        """
         try:
             if self.use:
                 logger.info(f"Saving runtime sheet to {output_name}")
