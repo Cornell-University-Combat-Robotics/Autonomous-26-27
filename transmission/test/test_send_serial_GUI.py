@@ -2,6 +2,7 @@ import argparse
 import time
 import tkinter as tk
 from tkinter import ttk
+
 import serial.tools.list_ports
 
 
