@@ -86,7 +86,7 @@ class Motor:
          sent through the serial connection.
 
          Args:
-            speed: Desired speed of the primary motor channel. Values greater than 1 are set to 1, 
+            speed: Desired speed of the primary motor channel. Values greater than 1 are set to 1,
             and values less than -1 are set to -1.
             speed2: Desired speed of the secondary
                  motor channel. Values outside [-1, 1] are clamped.
@@ -110,12 +110,32 @@ class Motor:
             # logger.debug(f"Channel data: {self.channel}, {self.speed}, {self.channel2}, {self.speed2}")
             self.ser.send_data(self.channel, self.speed, self.channel2, self.speed2)
 
-    def get_speed(self) -> (float, float):
-        """returns current speed"""
+    def get_speed(self) -> tuple[float, float]:
+        """Returns the current motor speed values.
+
+        Returns:
+            speed of the primary channel and the current speed of the
+            secondary channel. The secondary speed may be None.
+        """
         return self.speed, self.speed2
 
-    def stop(self, t=0) -> None:
-        """Stops motor, then sleeps for [t] seconds"""
+    def stop(self, t: float = 0) -> None:
+        """Stops the motor and optionally pauses execution.
+
+        Resets both motor speeds to the stored zero_speed value,
+        sends the updated speeds through the serial connection,
+        and pauses execution for the specified duration.
+
+        Args:
+            t (float): Number of seconds to pause after sending
+                the stop command. Defaults to 0.
+
+        Returns:
+            None.
+
+        Raises:
+            ValueError: If t is negative.
+        """
         self.speed = self.zero_speed
         self.speed2 = self.zero_speed
         self.ser.send_data(self.channel, self.speed, self.channel2, self.speed2)
