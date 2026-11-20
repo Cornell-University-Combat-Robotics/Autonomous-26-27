@@ -1,14 +1,15 @@
-import time
-from transmission.serial_conn import OurSerial
+"""Receives and transmits data between laptop and motors."""
+
 import logging
-import logging_config.logging_config
+import time
+
+from transmission.serial_conn import OurSerial
 
 logger = logging.getLogger(__name__)
 
 
 class Motor:
-    """
-    The Motor Module can be used to control a motor via the flysky channel it is set up to
+    """The Motor Module can be used to control a motor via the flysky channel it is set up to.
 
     Args:
     speed : float
@@ -19,7 +20,7 @@ class Motor:
         a OurSerial object that establishes the laptop's connection to the Arduino
 
 
-    Methods
+    Methods:
     -------
     move(speed: float)
         Sets the channel to [speed]. If [speed] is greater than 1,
@@ -41,8 +42,8 @@ class Motor:
         ser: OurSerial,
         channel: int,
         speed: float = 0,
-        channel2=None,
-        speed2=None,
+        channel2: int | None = None,
+        speed2: float | None = None,
     ) -> None:
         """Controls a motor through a FlySky channel using serial communication.
 
@@ -78,14 +79,13 @@ class Motor:
         speed: float,
         speed2: float | None = None,
     ) -> None:
-        """
-        Sets the motor speed and sends the updated command.
+        """Sets the motor speed and sends the updated command.
 
          Speed values are clamped to the range [-1, 1].
          If a secondary channel is configured, its speed is also
          sent through the serial connection.
 
-         Args:
+        Args:
             speed: Desired speed of the primary motor channel. Values greater than 1 are set to 1,
             and values less than -1 are set to -1.
             speed2: Desired speed of the secondary

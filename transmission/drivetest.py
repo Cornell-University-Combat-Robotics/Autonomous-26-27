@@ -1,10 +1,9 @@
 """Tests that our transmission works by sending movement commands to bot."""
 
+import time
+
 from motors import Motor
 from serial_conn import OurSerial
-import time
-import serial
-import serial.tools.list_ports
 
 # review if we actually need these ^^^ #
 
